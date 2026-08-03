@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>The Binding of Isaac: Mobile & Planetarium Edition</title>
+  <title>The Binding of Isaac: Responsive & Touch Edition</title>
   <style>
     * {
       box-sizing: border-box;
@@ -13,7 +13,9 @@
       -webkit-user-select: none;
       touch-action: manipulation;
     }
-    body {
+    html, body {
+      width: 100%;
+      height: 100%;
       background: #08050c;
       color: #fff;
       font-family: 'Courier New', Courier, monospace;
@@ -21,15 +23,17 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      min-height: 100vh;
       overflow: hidden;
     }
     #game-container {
       position: relative;
       width: 960px;
       height: 640px;
+      max-width: 100vw;
+      max-height: 100vh;
+      aspect-ratio: 3 / 2;
       box-shadow: 0 0 40px rgba(170, 0, 255, 0.5), 0 0 15px rgba(0, 0, 0, 0.9);
-      border: 4px solid #3d2836;
+      border: 3px solid #3d2836;
       border-radius: 8px;
       background-color: #120e17;
       overflow: hidden;
@@ -60,17 +64,17 @@
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
-      padding: 10px 16px;
+      padding: 8px 12px;
       background: linear-gradient(180deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 100%);
     }
     .hud-box {
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: 3px;
     }
     .hearts-container {
       display: flex;
-      gap: 4px;
+      gap: 3px;
       align-items: center;
     }
     .stats-hud {
@@ -78,13 +82,13 @@
       color: #d1b8e0;
       text-shadow: 1px 1px 2px #000;
       display: flex;
-      gap: 10px;
+      gap: 8px;
       margin-top: 2px;
     }
     .resources-hud {
       display: flex;
-      gap: 14px;
-      font-size: 15px;
+      gap: 12px;
+      font-size: 14px;
       font-weight: bold;
       color: #ffde59;
       text-shadow: 2px 2px 0 #000;
@@ -95,15 +99,15 @@
       gap: 4px;
     }
     #floor-title-hud {
-      font-size: 13px;
+      font-size: 12px;
       color: #a080cc;
       font-weight: bold;
       text-shadow: 1px 1px 2px #000;
     }
     /* Minimap */
     #minimap-canvas {
-      width: 100px;
-      height: 100px;
+      width: 85px;
+      height: 85px;
       background: rgba(0,0,0,0.75);
       border: 2px solid #5a3d5c;
       border-radius: 4px;
@@ -117,7 +121,7 @@
       background: rgba(20, 10, 25, 0.95);
       border: 3px solid #ff44aa;
       border-radius: 8px;
-      padding: 16px 32px;
+      padding: 14px 28px;
       text-align: center;
       box-shadow: 0 0 25px rgba(255, 68, 170, 0.8);
       transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -127,19 +131,19 @@
       transform: translate(-50%, -50%) scale(1);
     }
     #item-banner img {
-      width: 64px;
-      height: 64px;
+      width: 56px;
+      height: 56px;
       image-rendering: pixelated;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
     #item-banner h2 {
-      font-size: 22px;
+      font-size: 20px;
       color: #ff77d6;
       text-shadow: 2px 2px #000;
       margin-bottom: 4px;
     }
     #item-banner p {
-      font-size: 14px;
+      font-size: 13px;
       color: #e0d0ff;
     }
     /* Floor Transition Overlay */
@@ -164,50 +168,63 @@
       pointer-events: auto;
     }
     #floor-banner h1 {
-      font-size: 36px;
+      font-size: 32px;
       color: #ff44aa;
       text-shadow: 3px 3px 0 #000, 0 0 20px #ff0088;
       margin-bottom: 8px;
     }
     #floor-banner p {
-      font-size: 18px;
+      font-size: 16px;
       color: #b0a0e0;
     }
-    /* Mobile Touch Controls Overlay */
+
+    /* Mobile Touch Controls Overlay: HIDDEN ON DESKTOP BY DEFAULT! */
     .touch-controls {
       position: absolute;
-      bottom: 12px;
+      bottom: 10px;
       left: 0;
       width: 100%;
-      display: flex;
+      display: none; /* HIDDEN ON DESKTOP! */
       justify-content: space-between;
-      padding: 0 16px;
+      padding: 0 12px;
       pointer-events: auto;
       z-index: 40;
     }
+
+    /* SHOWN ONLY ON TOUCH PHONES / TABLETS OR SMALL SCREENS */
+    @media (hover: none) and (pointer: coarse), (max-width: 768px) {
+      .touch-controls {
+        display: flex !important;
+      }
+      #controls-hint {
+        display: none !important;
+      }
+    }
+
     .touch-pad {
       display: grid;
-      grid-template-columns: repeat(3, 44px);
-      grid-template-rows: repeat(3, 44px);
-      gap: 4px;
+      grid-template-columns: repeat(3, 40px);
+      grid-template-rows: repeat(3, 40px);
+      gap: 3px;
     }
     .tbtn {
-      background: rgba(255, 255, 255, 0.15);
-      border: 1.5px solid rgba(255, 255, 255, 0.35);
+      background: rgba(255, 255, 255, 0.2);
+      border: 1.5px solid rgba(255, 255, 255, 0.4);
       border-radius: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 18px;
+      font-size: 16px;
       color: white;
       user-select: none;
       font-weight: bold;
       box-shadow: 0 2px 5px rgba(0,0,0,0.5);
     }
     .tbtn:active {
-      background: rgba(255, 68, 170, 0.6);
+      background: rgba(255, 68, 170, 0.7);
       transform: scale(0.92);
     }
+
     /* Controls Bar Footer */
     #controls-hint {
       position: absolute;
@@ -222,6 +239,7 @@
       border: 1px solid #4a3055;
       text-shadow: 1px 1px 1px #000;
     }
+
     /* Menus Overlay */
     .menu-screen {
       position: absolute;
@@ -238,7 +256,7 @@
       pointer-events: auto;
     }
     .menu-title {
-      font-size: 32px;
+      font-size: 30px;
       font-weight: bold;
       color: #ff44aa;
       text-shadow: 3px 3px 0 #330022, 0 0 15px rgba(255,68,170,0.6);
@@ -249,17 +267,17 @@
     .menu-subtitle {
       font-size: 13px;
       color: #a0a0d0;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
       text-align: center;
     }
     .char-grid {
       display: flex;
       gap: 10px;
-      margin-bottom: 18px;
+      margin-bottom: 16px;
       flex-wrap: wrap;
       justify-content: center;
-      max-width: 920px;
-      max-height: 380px;
+      max-width: 900px;
+      max-height: 360px;
       overflow-y: auto;
       padding: 6px;
     }
@@ -268,7 +286,7 @@
       border: 2px solid #4a3055;
       border-radius: 8px;
       padding: 8px;
-      width: 135px;
+      width: 130px;
       text-align: center;
       cursor: pointer;
       transition: all 0.2s ease;
@@ -280,8 +298,8 @@
       box-shadow: 0 6px 15px rgba(255,68,170,0.4);
     }
     .char-card img {
-      width: 48px;
-      height: 48px;
+      width: 44px;
+      height: 44px;
       image-rendering: pixelated;
       margin-bottom: 4px;
       object-fit: contain;
@@ -317,7 +335,7 @@
     }
     .btn-small {
       padding: 6px 12px;
-      font-size: 12px;
+      font-size: 11px;
     }
   </style>
 </head>
@@ -347,11 +365,11 @@
         <div style="display: flex; gap: 8px; align-items: flex-start;">
           <button class="btn btn-small interactive" id="btn-menu">🏠 В меню</button>
           <button class="btn btn-small interactive" id="btn-audio">🎵 Музыка: ВКЛ</button>
-          <canvas id="minimap-canvas" width="100" height="100"></canvas>
+          <canvas id="minimap-canvas" width="85" height="85"></canvas>
         </div>
       </div>
 
-      <!-- Mobile Touch Controls -->
+      <!-- Mobile Touch Controls Overlay (Hidden on Desktop!) -->
       <div class="touch-controls">
         <!-- Movement D-Pad -->
         <div class="touch-pad">
@@ -381,7 +399,7 @@
       </div>
 
       <div id="controls-hint">
-        🎮 Движение: <b>WASD / Тач</b> | Стрельба: <b>Стрелки / Мышь / Тач</b> | Войти в люк: <b>E</b> | Бомба: <b>Shift / 💣</b>
+        🎮 Движение: <b>WASD</b> | Стрельба: <b>Стрелки / Мышь</b> | Войти в люк: <b>E</b> | Бомба: <b>Shift</b> | Пауза: <b>P</b>
       </div>
     </div>
 
@@ -957,7 +975,6 @@ function generateDungeon() {
     remainItem[0].cleared = true;
   }
 
-  // Planetarium Room! (30% chance)
   const remainPlan = normalRooms.filter(r => r.type === 'normal');
   if (remainPlan.length > 0 && Math.random() < 0.35) {
     remainPlan[0].type = 'planetarium';
@@ -1600,14 +1617,14 @@ class Enemy {
       this.animFrame = (this.animFrame + 1) % 3;
     }
 
-    // Telegraphed Brimstone Enemy (Shows dotted warning sight line for 1.0s before firing!)
+    // Telegraphed Brimstone Enemy
     if (this.isBrimstone) {
       this.shootTimer++;
       if (this.shootTimer >= 40 && this.shootTimer < 80) {
-        this.aimLine = true; // TELEGRAPH AIMING LINE!
+        this.aimLine = true;
       } else if (this.shootTimer >= 80) {
         this.aimLine = false;
-        this.brimstoneBeam = true; // FIRING LASER!
+        this.brimstoneBeam = true;
         if (Math.abs(player.y - this.y) < 25 || Math.abs(player.x - this.x) < 25) {
           player.takeDamage(1);
         }
@@ -1698,7 +1715,6 @@ class Enemy {
   }
 
   draw(ctx) {
-    // Telegraph aiming sight line for Brimstone Enemy
     if (this.aimLine) {
       ctx.save();
       ctx.strokeStyle = 'rgba(255, 0, 50, 0.6)';
@@ -1711,7 +1727,6 @@ class Enemy {
       ctx.restore();
     }
 
-    // Active Brimstone Laser Beam
     if (this.brimstoneBeam) {
       ctx.save();
       ctx.strokeStyle = '#ff0022';
@@ -1816,7 +1831,7 @@ function enterSpecialRoom(type) {
   const specRoom = {
     x: parentRoom.x,
     y: parentRoom.y,
-    type: type, // 'devil' or 'angel'
+    type: type,
     cleared: true,
     visited: true,
     doors: { bottom: true, top: false, left: false, right: false },
@@ -2501,7 +2516,7 @@ function render() {
     ctx.stroke();
   }
 
-  // Draw Fiery GIF Shrine in Devil Room!
+  // Fiery GIF Shrine in Devil Room!
   if (currentRoom.type === 'devil' && IMAGES['gif_devil.gif']) {
     ctx.drawImage(IMAGES['gif_devil.gif'], CANVAS_W / 2 - 75, OFFSET_Y + 15, 150, 100);
   }
@@ -2633,6 +2648,12 @@ window.onload = () => {
   
   const miniCanvas = document.getElementById('minimap-canvas');
   miniCtx = miniCanvas.getContext('2d');
+
+  // Auto-detect Touch device to force touch-controls display if needed!
+  if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
+    const tc = document.querySelector('.touch-controls');
+    if (tc) tc.style.display = 'flex';
+  }
 
   const charGrid = document.getElementById('char-select-grid');
   CHARACTERS.forEach((char, idx) => {
