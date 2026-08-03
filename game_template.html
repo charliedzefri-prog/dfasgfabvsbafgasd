@@ -1,0 +1,2734 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>The Binding of Isaac: Mobile & Planetarium Edition</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+    }
+    body {
+      background: #08050c;
+      color: #fff;
+      font-family: 'Courier New', Courier, monospace;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      overflow: hidden;
+    }
+    #game-container {
+      position: relative;
+      width: 960px;
+      height: 640px;
+      box-shadow: 0 0 40px rgba(170, 0, 255, 0.5), 0 0 15px rgba(0, 0, 0, 0.9);
+      border: 4px solid #3d2836;
+      border-radius: 8px;
+      background-color: #120e17;
+      overflow: hidden;
+    }
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+    }
+    .ui-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .interactive {
+      pointer-events: auto;
+    }
+    /* Top Bar HUD */
+    #hud-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 10px 16px;
+      background: linear-gradient(180deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 100%);
+    }
+    .hud-box {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .hearts-container {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+    }
+    .stats-hud {
+      font-size: 11px;
+      color: #d1b8e0;
+      text-shadow: 1px 1px 2px #000;
+      display: flex;
+      gap: 10px;
+      margin-top: 2px;
+    }
+    .resources-hud {
+      display: flex;
+      gap: 14px;
+      font-size: 15px;
+      font-weight: bold;
+      color: #ffde59;
+      text-shadow: 2px 2px 0 #000;
+    }
+    .res-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    #floor-title-hud {
+      font-size: 13px;
+      color: #a080cc;
+      font-weight: bold;
+      text-shadow: 1px 1px 2px #000;
+    }
+    /* Minimap */
+    #minimap-canvas {
+      width: 100px;
+      height: 100px;
+      background: rgba(0,0,0,0.75);
+      border: 2px solid #5a3d5c;
+      border-radius: 4px;
+    }
+    /* Item Banner Popup */
+    #item-banner {
+      position: absolute;
+      top: 25%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0);
+      background: rgba(20, 10, 25, 0.95);
+      border: 3px solid #ff44aa;
+      border-radius: 8px;
+      padding: 16px 32px;
+      text-align: center;
+      box-shadow: 0 0 25px rgba(255, 68, 170, 0.8);
+      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      z-index: 100;
+    }
+    #item-banner.active {
+      transform: translate(-50%, -50%) scale(1);
+    }
+    #item-banner img {
+      width: 64px;
+      height: 64px;
+      image-rendering: pixelated;
+      margin-bottom: 8px;
+    }
+    #item-banner h2 {
+      font-size: 22px;
+      color: #ff77d6;
+      text-shadow: 2px 2px #000;
+      margin-bottom: 4px;
+    }
+    #item-banner p {
+      font-size: 14px;
+      color: #e0d0ff;
+    }
+    /* Floor Transition Overlay */
+    #floor-banner {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(5, 2, 10, 0.95);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 150;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s ease;
+    }
+    #floor-banner.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    #floor-banner h1 {
+      font-size: 36px;
+      color: #ff44aa;
+      text-shadow: 3px 3px 0 #000, 0 0 20px #ff0088;
+      margin-bottom: 8px;
+    }
+    #floor-banner p {
+      font-size: 18px;
+      color: #b0a0e0;
+    }
+    /* Mobile Touch Controls Overlay */
+    .touch-controls {
+      position: absolute;
+      bottom: 12px;
+      left: 0;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      padding: 0 16px;
+      pointer-events: auto;
+      z-index: 40;
+    }
+    .touch-pad {
+      display: grid;
+      grid-template-columns: repeat(3, 44px);
+      grid-template-rows: repeat(3, 44px);
+      gap: 4px;
+    }
+    .tbtn {
+      background: rgba(255, 255, 255, 0.15);
+      border: 1.5px solid rgba(255, 255, 255, 0.35);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      color: white;
+      user-select: none;
+      font-weight: bold;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+    }
+    .tbtn:active {
+      background: rgba(255, 68, 170, 0.6);
+      transform: scale(0.92);
+    }
+    /* Controls Bar Footer */
+    #controls-hint {
+      position: absolute;
+      bottom: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.8);
+      background: rgba(0, 0, 0, 0.7);
+      padding: 5px 14px;
+      border-radius: 12px;
+      border: 1px solid #4a3055;
+      text-shadow: 1px 1px 1px #000;
+    }
+    /* Menus Overlay */
+    .menu-screen {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(12, 8, 18, 0.95);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+      pointer-events: auto;
+    }
+    .menu-title {
+      font-size: 32px;
+      font-weight: bold;
+      color: #ff44aa;
+      text-shadow: 3px 3px 0 #330022, 0 0 15px rgba(255,68,170,0.6);
+      margin-bottom: 4px;
+      letter-spacing: 2px;
+      text-align: center;
+    }
+    .menu-subtitle {
+      font-size: 13px;
+      color: #a0a0d0;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+    .char-grid {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+      justify-content: center;
+      max-width: 920px;
+      max-height: 380px;
+      overflow-y: auto;
+      padding: 6px;
+    }
+    .char-card {
+      background: #201628;
+      border: 2px solid #4a3055;
+      border-radius: 8px;
+      padding: 8px;
+      width: 135px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .char-card:hover, .char-card.selected {
+      border-color: #ff44aa;
+      background: #351c42;
+      transform: translateY(-3px);
+      box-shadow: 0 6px 15px rgba(255,68,170,0.4);
+    }
+    .char-card img {
+      width: 48px;
+      height: 48px;
+      image-rendering: pixelated;
+      margin-bottom: 4px;
+      object-fit: contain;
+    }
+    .char-name {
+      font-size: 12px;
+      font-weight: bold;
+      color: #fff;
+      margin-bottom: 3px;
+    }
+    .char-desc {
+      font-size: 10px;
+      color: #b0a0cc;
+      line-height: 1.2;
+    }
+    .btn {
+      background: linear-gradient(180deg, #ff44aa 0%, #aa1166 100%);
+      color: white;
+      border: 2px solid #ff77cc;
+      border-radius: 6px;
+      padding: 12px 32px;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+      text-shadow: 1px 1px 2px #000;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+      transition: all 0.15s ease;
+    }
+    .btn:hover {
+      transform: scale(1.05);
+      background: linear-gradient(180deg, #ff66c4 0%, #cc2288 100%);
+      box-shadow: 0 6px 15px rgba(255, 68, 170, 0.6);
+    }
+    .btn-small {
+      padding: 6px 12px;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="game-container">
+    <canvas id="gameCanvas" width="960" height="640"></canvas>
+
+    <!-- UI Overlay -->
+    <div class="ui-overlay">
+      <div id="hud-top">
+        <div class="hud-box">
+          <div id="floor-title-hud">ЭТАЖ 1: ПОДВАЛ</div>
+          <div class="hearts-container" id="hearts-display"></div>
+          <div class="resources-hud">
+            <div class="res-item">🪙 <span id="coins-cnt">0</span></div>
+            <div class="res-item">💣 <span id="bombs-cnt">1</span></div>
+            <div class="res-item">🔑 <span id="keys-cnt">1</span></div>
+          </div>
+          <div class="stats-hud">
+            <span id="stat-dmg">⚔️ 3.5</span>
+            <span id="stat-spd">👟 3.5</span>
+            <span id="stat-rate">🔥 1.0</span>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 8px; align-items: flex-start;">
+          <button class="btn btn-small interactive" id="btn-menu">🏠 В меню</button>
+          <button class="btn btn-small interactive" id="btn-audio">🎵 Музыка: ВКЛ</button>
+          <canvas id="minimap-canvas" width="100" height="100"></canvas>
+        </div>
+      </div>
+
+      <!-- Mobile Touch Controls -->
+      <div class="touch-controls">
+        <!-- Movement D-Pad -->
+        <div class="touch-pad">
+          <div></div>
+          <div class="tbtn" id="tb-w">▲</div>
+          <div></div>
+          <div class="tbtn" id="tb-a">◀</div>
+          <div class="tbtn" id="tb-e">E</div>
+          <div class="tbtn" id="tb-d">▶</div>
+          <div></div>
+          <div class="tbtn" id="tb-s">▼</div>
+          <div class="tbtn" id="tb-bomb">💣</div>
+        </div>
+
+        <!-- Shooting D-Pad -->
+        <div class="touch-pad">
+          <div></div>
+          <div class="tbtn" id="tb-up">▲</div>
+          <div></div>
+          <div class="tbtn" id="tb-left">◀</div>
+          <div></div>
+          <div class="tbtn" id="tb-right">▶</div>
+          <div></div>
+          <div class="tbtn" id="tb-down">▼</div>
+          <div></div>
+        </div>
+      </div>
+
+      <div id="controls-hint">
+        🎮 Движение: <b>WASD / Тач</b> | Стрельба: <b>Стрелки / Мышь / Тач</b> | Войти в люк: <b>E</b> | Бомба: <b>Shift / 💣</b>
+      </div>
+    </div>
+
+    <!-- Item Popup Banner -->
+    <div id="item-banner">
+      <img id="banner-img" src="" alt="item">
+      <h2 id="banner-title">MEOWMERE</h2>
+      <p id="banner-desc">Rainbow Cat Power!</p>
+    </div>
+
+    <!-- Floor Transition Screen -->
+    <div id="floor-banner">
+      <h1 id="floor-banner-name">ЭТАЖ 1: ПОДВАЛ</h1>
+      <p id="floor-banner-sub">Спускаемся глубже во тьму...</p>
+    </div>
+
+    <!-- Start / Character Selection Screen -->
+    <div id="menu-screen" class="menu-screen">
+      <div class="menu-title">THE BINDING OF ISAAC</div>
+      <div class="menu-subtitle">🔥 MOBILE, PLANETARIUM & DEVIL ROOMS 🐱</div>
+
+      <div class="char-grid" id="char-select-grid"></div>
+
+      <button class="btn" id="btn-start-game">В БОЙ!</button>
+    </div>
+
+    <!-- Pause Screen -->
+    <div id="pause-screen" class="menu-screen" style="display: none;">
+      <div class="menu-title" style="color: #ffaa00;">ПАУЗА</div>
+      <div class="menu-subtitle">Игра приостановлена</div>
+      <div style="display: flex; gap: 16px; margin-top: 16px;">
+        <button class="btn" id="btn-resume">ПРОДОЛЖИТЬ</button>
+        <button class="btn" id="btn-pause-menu" style="background: linear-gradient(180deg, #6644aa 0%, #331166 100%);">В ГЛАВНОЕ МЕНЮ</button>
+      </div>
+    </div>
+
+    <!-- Game Over Screen -->
+    <div id="gameover-screen" class="menu-screen" style="display: none;">
+      <div class="menu-title" style="color: #ff3333;">ВЫ ПОГИБЛИ</div>
+      <div class="menu-subtitle" id="death-reason">Подземелье поглотило вашу душу...</div>
+      <div style="margin-bottom: 20px; font-size: 15px; color: #ffcc00;" id="game-stats-summary"></div>
+      <div style="display: flex; gap: 16px;">
+        <button class="btn" id="btn-restart">ПОПРОБОВАТЬ СНОВА</button>
+        <button class="btn" id="btn-gameover-menu" style="background: linear-gradient(180deg, #6644aa 0%, #331166 100%);">В МЕНЮ</button>
+      </div>
+    </div>
+
+    <!-- Victory Screen -->
+    <div id="victory-screen" class="menu-screen" style="display: none;">
+      <div class="menu-title" style="color: #44ffbb;">ФИНАЛЬНАЯ ПОБЕДА!</div>
+      <div class="menu-subtitle">Вы прошли все 9 этажей и сокрушили МЕГА САТАНУ!</div>
+      <div style="margin-bottom: 20px; font-size: 15px; color: #ff77d6;" id="victory-stats-summary"></div>
+      <div style="display: flex; gap: 16px;">
+        <button class="btn" id="btn-victory-restart">ИГРАТЬ СНОВА</button>
+        <button class="btn" id="btn-victory-menu" style="background: linear-gradient(180deg, #6644aa 0%, #331166 100%);">В МЕНЮ</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+// --- ASSETS LOAD ---
+const RAW_ASSETS = __ASSETS_JSON__;
+const IMAGES = {};
+let assetsLoaded = 0;
+const totalAssets = Object.keys(RAW_ASSETS).length;
+
+function loadAssets(callback) {
+  for (let key in RAW_ASSETS) {
+    const img = new Image();
+    img.onload = () => {
+      assetsLoaded++;
+      if (assetsLoaded >= totalAssets) callback();
+    };
+    img.src = RAW_ASSETS[key];
+    IMAGES[key] = img;
+  }
+}
+
+// --- SOUND & MUSIC ENGINE (Web Audio API Synthesizer) ---
+class AudioEngine {
+  constructor() {
+    this.ctx = null;
+    this.muted = false;
+    this.bgmTimer = null;
+    this.noteStep = 0;
+  }
+  init() {
+    if (!this.ctx) {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      this.ctx = new AudioCtx();
+    }
+  }
+  playMeow() {
+    if (this.muted || !this.ctx) return;
+    try {
+      const now = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'triangle';
+      
+      osc.frequency.setValueAtTime(550, now);
+      osc.frequency.exponentialRampToValueAtTime(1100, now + 0.08);
+      osc.frequency.exponentialRampToValueAtTime(700, now + 0.25);
+
+      gain.gain.setValueAtTime(0.2, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.25);
+    } catch(e) {}
+  }
+  playTear() {
+    if (this.muted || !this.ctx) return;
+    try {
+      const now = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(400, now);
+      osc.frequency.exponentialRampToValueAtTime(120, now + 0.08);
+      gain.gain.setValueAtTime(0.15, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.08);
+    } catch(e) {}
+  }
+  playHit() {
+    if (this.muted || !this.ctx) return;
+    try {
+      const now = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(180, now);
+      osc.frequency.exponentialRampToValueAtTime(40, now + 0.12);
+      gain.gain.setValueAtTime(0.25, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.12);
+    } catch(e) {}
+  }
+  playExplosion() {
+    if (this.muted || !this.ctx) return;
+    try {
+      const now = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(100, now);
+      osc.frequency.exponentialRampToValueAtTime(20, now + 0.35);
+      gain.gain.setValueAtTime(0.35, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.35);
+    } catch(e) {}
+  }
+  playPickup() {
+    if (this.muted || !this.ctx) return;
+    try {
+      const now = this.ctx.currentTime;
+      [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0.2, now + idx * 0.06);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.06 + 0.1);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now + idx * 0.06);
+        osc.stop(now + idx * 0.06 + 0.1);
+      });
+    } catch(e) {}
+  }
+  playTrapdoor() {
+    if (this.muted || !this.ctx) return;
+    try {
+      const now = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(300, now);
+      osc.frequency.exponentialRampToValueAtTime(60, now + 0.4);
+      gain.gain.setValueAtTime(0.3, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.4);
+    } catch(e) {}
+  }
+  playItemFanfare() {
+    if (this.muted || !this.ctx) return;
+    try {
+      const now = this.ctx.currentTime;
+      const notes = [440, 554.37, 659.25, 880, 1108.73];
+      notes.forEach((freq, idx) => {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.value = freq;
+        const startTime = now + idx * 0.08;
+        gain.gain.setValueAtTime(0.25, startTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.2);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(startTime);
+        osc.stop(startTime + 0.2);
+      });
+    } catch(e) {}
+  }
+  startBGM() {
+    if (this.bgmTimer) return;
+    const bassline = [110, 110, 130.81, 123.47, 98, 98, 110, 123.47];
+    const melody = [220, 261.63, 293.66, 329.63, 261.63, 220, 196, 220];
+    
+    this.bgmTimer = setInterval(() => {
+      if (this.muted || !this.ctx) return;
+      try {
+        const now = this.ctx.currentTime;
+        
+        const bOsc = this.ctx.createOscillator();
+        const bGain = this.ctx.createGain();
+        bOsc.type = 'sawtooth';
+        bOsc.frequency.value = bassline[this.noteStep % bassline.length];
+        bGain.gain.setValueAtTime(0.06, now);
+        bGain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+        bOsc.connect(bGain);
+        bGain.connect(this.ctx.destination);
+        bOsc.start(now);
+        bOsc.stop(now + 0.2);
+
+        if (this.noteStep % 2 === 0) {
+          const mOsc = this.ctx.createOscillator();
+          const mGain = this.ctx.createGain();
+          mOsc.type = 'square';
+          mOsc.frequency.value = melody[(this.noteStep / 2) % melody.length];
+          mGain.gain.setValueAtTime(0.04, now);
+          mGain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+          mOsc.connect(mGain);
+          mGain.connect(this.ctx.destination);
+          mOsc.start(now);
+          mOsc.stop(now + 0.3);
+        }
+
+        this.noteStep++;
+      } catch(e) {}
+    }, 220);
+  }
+}
+
+const audio = new AudioEngine();
+
+// --- 9 FLOORS DEFINITION ---
+const FLOORS = [
+  { id: 1, name: 'ЭТАЖ 1: ПОДВАЛ (BASEMENT)', bgTile: '#2d1e36', wallColor: '#120b18', boss: 'boss_snake' },
+  { id: 2, name: 'ЭТАЖ 2: ПОГРЕБ (CELLAR)', bgTile: '#222836', wallColor: '#0b1018', boss: 'boss_sans' },
+  { id: 3, name: 'ЭТАЖ 3: ПЕЩЕРЫ (CAVES)', bgTile: '#193238', wallColor: '#08161a', boss: 'boss_clown' },
+  { id: 4, name: 'ЭТАЖ 4: КАТАКОМБЫ (CATACOMBS)', bgTile: '#381f33', wallColor: '#1a0817', boss: 'boss_sosal' },
+  { id: 5, name: 'ЭТАЖ 5: ГЛУБИНЫ (DEPTHS)', bgTile: '#1f1f2e', wallColor: '#0c0c14', boss: 'boss_mask' },
+  { id: 6, name: 'ЭТАЖ 6: НЕКРОПОЛЬ (NECROPOLIS)', bgTile: '#383236', wallColor: '#1c181a', boss: 'boss_sins_duo' },
+  { id: 7, name: 'ЭТАЖ 7: ЧРЕВО (WOMB)', bgTile: '#4a151f', wallColor: '#21050a', boss: 'boss_fly_lord' },
+  { id: 8, name: 'ЭТАЖ 8: ПРЕИСПОДНЯЯ (SHEOL)', bgTile: '#3d0c0c', wallColor: '#170303', boss: 'boss_satan' },
+  { id: 9, name: 'ЭТАЖ 9: ЛОГОВО МЕГА САТАНЫ (THE VOID)', bgTile: '#2b103d', wallColor: '#12031c', boss: 'boss_mega_satan' }
+];
+
+// Rich Floor Mobs Roster (ALL 14 MOBS!)
+const FLOOR_MOBS = {
+  1: ['mouse', 'snake', 'chicken', 'bunny'],
+  2: ['grey_mask', 'mouse', 'builder'],
+  3: ['clown', 'duck_mob', 'seven_mob'],
+  4: ['sosal', 'boxer', 'snake'],
+  5: ['grey_mask', 'sans_mob', 'brimstone_demon'],
+  6: ['clown', 'angel_mob', 'boxer'],
+  7: ['sosal', 'mouse', 'bunny', 'brimstone_demon'],
+  8: ['brimstone_demon', 'sosal', 'builder', 'sans_mob'],
+  9: ['brimstone_demon', 'clown', 'sosal', 'grey_mask', 'snake', 'mouse', 'chicken', 'boxer', 'seven_mob']
+};
+
+let currentFloorIdx = 0;
+
+// --- GAME CONSTANTS & CHARACTERS ---
+const CANVAS_W = 960;
+const CANVAS_H = 640;
+const TILE_SIZE = 48;
+const ROOM_GRID_W = 15;
+const ROOM_GRID_H = 9;
+const OFFSET_X = (CANVAS_W - ROOM_GRID_W * TILE_SIZE) / 2;
+const OFFSET_Y = (CANVAS_H - ROOM_GRID_H * TILE_SIZE) / 2 + 20;
+
+const CHARACTERS = [
+  {
+    id: 'cat_warrior',
+    name: 'Мяу-Рыцарь',
+    sheet: 'char_cat_warrior.png',
+    hp: 6, maxHp: 6, soulHp: 0,
+    speed: 3.8, damage: 4.5, tearRate: 1.2,
+    desc: '🐱 СТАРТУЕТ С МЯУМУРОМ! Рикошетные радужные котики!',
+    item: 'meowmere'
+  },
+  {
+    id: 'seven',
+    name: 'Айзек Семёрка',
+    sheet: 'char_seven.png',
+    hp: 6, maxHp: 6, soulHp: 0,
+    speed: 3.5, damage: 3.5, tearRate: 1.0,
+    desc: 'Базовый герой. Сбалансированные характеристики.',
+    item: null
+  },
+  {
+    id: 'angel',
+    name: 'Ангел Десятка',
+    sheet: 'char_angel.png',
+    hp: 4, maxHp: 4, soulHp: 4,
+    speed: 4.0, damage: 3.0, tearRate: 1.1,
+    desc: 'Священный ангел с душевными сердцами и полётом.',
+    item: 'halo'
+  },
+  {
+    id: 'sosal_devil',
+    name: 'Демон SOSAL',
+    sheet: 'char_sosal_devil.png',
+    hp: 2, maxHp: 2, soulHp: 4,
+    speed: 4.2, damage: 5.5, tearRate: 0.9,
+    desc: 'Адский демон с мощным уроном кровавыми слезами.',
+    item: 'horns'
+  },
+  {
+    id: 'greed_sin',
+    name: 'Грех Жадность',
+    sheet: 'sin_greed.png',
+    hp: 6, maxHp: 6, soulHp: 2,
+    speed: 4.0, damage: 4.0, tearRate: 1.1,
+    desc: '💰 Крутой смайл! Монеты дают прибавку к урону!',
+    isSinImg: true,
+    item: 'money_power'
+  },
+  {
+    id: 'wrath_sin',
+    name: 'Грех Гнев',
+    sheet: 'sin_wrath.png',
+    hp: 4, maxHp: 4, soulHp: 0,
+    speed: 4.5, damage: 6.0, tearRate: 0.8,
+    desc: '🔥 Разъярённая корона! Огромная скорость и урон!',
+    isSinImg: true,
+    item: null
+  },
+  {
+    id: 'pride_sin',
+    name: 'Грех Гордыня',
+    sheet: 'sin_pride.png',
+    hp: 8, maxHp: 8, soulHp: 0,
+    speed: 3.2, damage: 5.0, tearRate: 1.0,
+    desc: '💪 Накачанный крепыш! Огромный запас здоровья.',
+    isSinImg: true,
+    item: null
+  }
+];
+
+// --- EXPANDED ITEMS DATABASE ---
+const ITEMS_DB = {
+  meowmere: {
+    id: 'meowmere',
+    name: 'МЯУМУР (MEOWMERE)',
+    desc: 'Легендарный меч Террарии! Радужные котики с рикошетом!',
+    icon: 'meowmere_64.png',
+    cost: 0,
+    apply: (p) => {
+      p.hasMeowmere = true;
+      p.damage += 2.5;
+      p.tearSpeed += 2.0;
+    }
+  },
+  sacred_heart: {
+    id: 'sacred_heart',
+    name: 'СВЯЩЕННОЕ СЕРДЦЕ',
+    desc: 'Огромный урон + Наводящиеся слезы + Душевные сердца!',
+    icon: null,
+    cost: 0,
+    apply: (p) => {
+      p.damage += 4.0;
+      p.homingTears = true;
+      p.soulHp += 4;
+    }
+  },
+  jupiter: {
+    id: 'jupiter',
+    name: 'ПЛАНЕТА ЮПИТЕР',
+    desc: 'Космический ядовитый шлейф + Бешеная скорость!',
+    icon: null,
+    cost: 0,
+    apply: (p) => {
+      p.speed += 1.5;
+      p.damage += 2.0;
+    }
+  },
+  the_sun: {
+    id: 'the_sun',
+    name: 'СОЛНЦЕ (ПЛАНЕТАРИЙ)',
+    desc: 'Полное исцеление + Громадный урон!',
+    icon: null,
+    cost: 0,
+    apply: (p) => {
+      p.hp = p.maxHp;
+      p.damage += 3.0;
+    }
+  },
+  polyphemus: {
+    id: 'polyphemus',
+    name: 'ПОЛИФЕМ (Гигантский Глаз)',
+    desc: 'Громадный урон! Гигантские слезы!',
+    icon: null,
+    cost: 0,
+    apply: (p) => {
+      p.damage += 5.0;
+      p.tearScale = 2.0;
+      p.tearRate *= 0.7;
+    }
+  },
+  halo: {
+    id: 'halo',
+    name: 'СВЯТОЙ НИМБ',
+    desc: 'Все характеристики повышены + орбитальный щит!',
+    icon: null,
+    cost: 0,
+    apply: (p) => {
+      p.damage += 1.0;
+      p.speed += 0.5;
+      p.maxHp += 2;
+      p.hp += 2;
+      p.hasHalo = true;
+    }
+  },
+  horns: {
+    id: 'horns',
+    name: 'РОГА ДЕМОНА (BRIMSTONE)',
+    desc: '+3.0 к Урону! Мощный Бримстоун выстрел!',
+    icon: null,
+    cost: 2,
+    apply: (p) => {
+      p.damage += 3.0;
+      p.hasHorns = true;
+    }
+  },
+  magic_mushroom: {
+    id: 'magic_mushroom',
+    name: 'МАГИЧЕСКИЙ ГРИБ',
+    desc: 'Все характеристики повышены! Увеличение размера!',
+    icon: null,
+    cost: 0,
+    apply: (p) => {
+      p.damage += 2.0;
+      p.speed += 0.8;
+      p.maxHp += 2;
+      p.hp += 2;
+      p.scale = 1.3;
+    }
+  },
+  money_power: {
+    id: 'money_power',
+    name: 'ДЕНЕЖНЫЙ МЕШОК',
+    desc: 'Каждая монета увеличивает урон на +0.2!',
+    icon: null,
+    cost: 0,
+    apply: (p) => {
+      p.hasMoneyPower = true;
+    }
+  },
+  spoon_bender: {
+    id: 'spoon_bender',
+    name: 'ЛОЖКА-ИЗГИБАТЕЛЬ',
+    desc: 'Самоповорачивающиеся наводящиеся слезы!',
+    icon: null,
+    cost: 0,
+    apply: (p) => {
+      p.homingTears = true;
+    }
+  }
+};
+
+// --- GAME STATE VARIABLES ---
+let canvas, ctx, miniCtx;
+let selectedCharIdx = 0;
+let gameState = 'MENU';
+let keysHeld = {};
+let mousePos = { x: 0, y: 0, down: false };
+
+let dungeonMap = [];
+let currentRoomPos = { x: 2, y: 2 };
+let currentRoom = null;
+
+let player = null;
+let projectiles = [];
+let enemyProjectiles = [];
+let enemies = [];
+let roomObjects = [];
+let pickups = [];
+let particles = [];
+let floatingTexts = [];
+
+let roomTransition = null;
+let roomGraceTimer = 0;
+
+// --- MAP GENERATION ENGINE ---
+function generateDungeon() {
+  dungeonMap = Array(5).fill(0).map(() => Array(5).fill(null));
+  
+  const startX = 2, startY = 2;
+  let roomCount = 8 + currentFloorIdx * 2;
+  let roomsPlaced = [];
+
+  function placeRoom(x, y, type) {
+    const room = {
+      x, y,
+      type, // 'start', 'normal', 'item', 'sin', 'boss', 'devil', 'angel', 'planetarium'
+      cleared: type === 'start' || type === 'item' || type === 'devil' || type === 'angel' || type === 'planetarium',
+      visited: type === 'start',
+      doors: { top: false, bottom: false, left: false, right: false },
+      tiles: [],
+      enemiesToSpawn: [],
+      objects: [],
+      sinType: null
+    };
+    dungeonMap[y][x] = room;
+    roomsPlaced.push(room);
+    return room;
+  }
+
+  placeRoom(startX, startY, 'start');
+
+  let currX = startX, currY = startY;
+  while (roomsPlaced.length < roomCount) {
+    const dirs = [
+      { dx: 1, dy: 0 }, { dx: -1, dy: 0 },
+      { dx: 0, dy: 1 }, { dx: 0, dy: -1 }
+    ];
+    const d = dirs[Math.floor(Math.random() * dirs.length)];
+    const nx = currX + d.dx;
+    const ny = currY + d.dy;
+    if (nx >= 0 && nx < 5 && ny >= 0 && ny < 5) {
+      currX = nx;
+      currY = ny;
+      if (!dungeonMap[currY][currX]) {
+        placeRoom(currX, currY, 'normal');
+      }
+    }
+  }
+
+  const normalRooms = roomsPlaced.filter(r => r.type === 'normal');
+  
+  let maxDist = -1;
+  let bossRoom = null;
+  normalRooms.forEach(r => {
+    const dist = Math.abs(r.x - startX) + Math.abs(r.y - startY);
+    if (dist > maxDist) {
+      maxDist = dist;
+      bossRoom = r;
+    }
+  });
+  if (bossRoom) bossRoom.type = 'boss';
+
+  const remainItem = normalRooms.filter(r => r.type === 'normal');
+  if (remainItem.length > 0) {
+    remainItem[0].type = 'item';
+    remainItem[0].cleared = true;
+  }
+
+  // Planetarium Room! (30% chance)
+  const remainPlan = normalRooms.filter(r => r.type === 'normal');
+  if (remainPlan.length > 0 && Math.random() < 0.35) {
+    remainPlan[0].type = 'planetarium';
+    remainPlan[0].cleared = true;
+  }
+
+  const sinsList = ['wrath', 'pride', 'greed', 'envy', 'sloth', 'lust', 'gluttony'];
+  const remainSins = normalRooms.filter(r => r.type === 'normal');
+  if (remainSins.length > 0) {
+    remainSins[0].type = 'sin';
+    remainSins[0].sinType = sinsList[Math.floor(Math.random() * sinsList.length)];
+  }
+
+  for (let r = 0; r < 5; r++) {
+    for (let c = 0; c < 5; c++) {
+      const room = dungeonMap[r][c];
+      if (room) {
+        if (r > 0 && dungeonMap[r - 1][c]) room.doors.top = true;
+        if (r < 4 && dungeonMap[r + 1][c]) room.doors.bottom = true;
+        if (c > 0 && dungeonMap[r][c - 1]) room.doors.left = true;
+        if (c < 4 && dungeonMap[r][c + 1]) room.doors.right = true;
+        populateRoomContents(room);
+      }
+    }
+  }
+
+  currentRoomPos = { x: startX, y: startY };
+  currentRoom = dungeonMap[startY][startX];
+}
+
+function populateRoomContents(room) {
+  room.tiles = Array(ROOM_GRID_H).fill(0).map(() => Array(ROOM_GRID_W).fill(0));
+  
+  if (room.type === 'start') return;
+  if (room.type === 'item') return;
+  if (room.type === 'planetarium') return;
+
+  if (room.type === 'normal') {
+    const pattern = Math.floor(Math.random() * 4);
+    if (pattern === 1) {
+      room.tiles[2][2] = 1; room.tiles[2][12] = 1;
+      room.tiles[6][2] = 1; room.tiles[6][12] = 1;
+    } else if (pattern === 2) {
+      room.tiles[4][5] = 1; room.tiles[4][9] = 1;
+      room.tiles[3][7] = 2;
+    } else if (pattern === 3) {
+      room.tiles[2][4] = 1; room.tiles[2][10] = 1;
+      room.tiles[6][4] = 1; room.tiles[6][10] = 1;
+      room.tiles[4][7] = 4;
+    }
+
+    const count = 3 + Math.floor(Math.random() * 3) + Math.floor(currentFloorIdx / 2);
+    const floorMobs = FLOOR_MOBS[currentFloorIdx + 1] || ['mouse', 'snake'];
+    for (let i = 0; i < count; i++) {
+      const etype = floorMobs[Math.floor(Math.random() * floorMobs.length)];
+      room.enemiesToSpawn.push(etype);
+    }
+  }
+
+  if (room.type === 'sin') {
+    room.enemiesToSpawn.push('sin_' + (room.sinType || 'wrath'));
+  }
+
+  if (room.type === 'boss') {
+    const currentFloor = FLOORS[currentFloorIdx];
+    room.enemiesToSpawn.push(currentFloor.boss);
+  }
+}
+
+// --- PLAYER CLASS ---
+class Player {
+  constructor(charData) {
+    this.charData = charData;
+    this.x = OFFSET_X + (ROOM_GRID_W * TILE_SIZE) / 2;
+    this.y = OFFSET_Y + (ROOM_GRID_H * TILE_SIZE) / 2;
+    this.radius = 18;
+    this.scale = 1.0;
+    
+    this.maxHp = charData.maxHp;
+    this.hp = charData.hp;
+    this.soulHp = charData.soulHp;
+    
+    this.speed = charData.speed;
+    this.damage = charData.damage;
+    this.tearRate = charData.tearRate;
+    this.tearSpeed = 7.5;
+    this.tearScale = 1.0;
+    
+    this.coins = 5;
+    this.bombs = 2;
+    this.keys = 1;
+
+    this.dir = 0;
+    this.animFrame = 0;
+    this.animTimer = 0;
+    
+    this.shootTimer = 0;
+    this.invulnTimer = 0;
+
+    this.hasMeowmere = false;
+    this.hasHalo = false;
+    this.hasHorns = false;
+    this.hasMoneyPower = false;
+    this.homingTears = false;
+    this.swingTimer = 0;
+
+    if (charData.item) {
+      const item = ITEMS_DB[charData.item];
+      if (item) item.apply(this);
+    }
+  }
+
+  getEffectiveDamage() {
+    let dmg = this.damage;
+    if (this.hasMoneyPower) {
+      dmg += this.coins * 0.2;
+    }
+    return dmg;
+  }
+
+  update() {
+    if (this.shootTimer > 0) this.shootTimer--;
+    if (this.invulnTimer > 0) this.invulnTimer--;
+    if (this.swingTimer > 0) this.swingTimer--;
+
+    let dx = 0, dy = 0;
+    if (keysHeld['KeyA']) dx -= 1;
+    if (keysHeld['KeyD']) dx += 1;
+    if (keysHeld['KeyW']) dy -= 1;
+    if (keysHeld['KeyS']) dy += 1;
+
+    if (dx !== 0 && dy !== 0) {
+      dx *= 0.7071;
+      dy *= 0.7071;
+    }
+
+    if (dy > 0) this.dir = 0;
+    else if (dx < 0) this.dir = 1;
+    else if (dx > 0) this.dir = 2;
+    else if (dy < 0) this.dir = 3;
+
+    const nextX = this.x + dx * this.speed;
+    const nextY = this.y + dy * this.speed;
+
+    const minX = OFFSET_X + TILE_SIZE / 2 + this.radius;
+    const maxX = OFFSET_X + (ROOM_GRID_W - 0.5) * TILE_SIZE - this.radius;
+    const minY = OFFSET_Y + TILE_SIZE / 2 + this.radius;
+    const maxY = OFFSET_Y + (ROOM_GRID_H - 0.5) * TILE_SIZE - this.radius;
+
+    this.x = Math.max(minX, Math.min(maxX, nextX));
+    this.y = Math.max(minY, Math.min(maxY, nextY));
+
+    if (dx !== 0 || dy !== 0) {
+      this.animTimer++;
+      if (this.animTimer % 8 === 0) {
+        this.animFrame = (this.animFrame + 1) % 3;
+      }
+    } else {
+      this.animFrame = 1;
+    }
+
+    let shootDx = 0, shootDy = 0;
+    if (keysHeld['ArrowLeft']) shootDx = -1;
+    if (keysHeld['ArrowRight']) shootDx = 1;
+    if (keysHeld['ArrowUp']) shootDy = -1;
+    if (keysHeld['ArrowDown']) shootDy = 1;
+
+    if (mousePos.down && shootDx === 0 && shootDy === 0) {
+      const angle = Math.atan2(mousePos.y - this.y, mousePos.x - this.x);
+      shootDx = Math.cos(angle);
+      shootDy = Math.sin(angle);
+    }
+
+    if ((shootDx !== 0 || shootDy !== 0) && this.shootTimer <= 0) {
+      this.fireTear(shootDx, shootDy);
+      this.shootTimer = Math.max(5, Math.floor(20 / this.tearRate));
+    }
+
+    const nearTrapdoor = roomObjects.some(obj => obj instanceof Trapdoor && obj.playerNear && obj.activationTimer <= 0);
+    const nearDevilAngel = roomObjects.some(obj => obj instanceof SpecialDoor && obj.playerNear);
+    const nearReturnDoor = roomObjects.some(obj => obj instanceof ReturnDoor && obj.playerNear);
+    if ((keysHeld['ShiftLeft'] || keysHeld['ShiftRight'] || (keysHeld['KeyE'] && !nearTrapdoor && !nearDevilAngel && !nearReturnDoor)) && this.bombs > 0) {
+      if (!this.bombCooldown) {
+        this.placeBomb();
+        this.bombCooldown = 30;
+      }
+    }
+    if (this.bombCooldown > 0) this.bombCooldown--;
+
+    this.checkDoorTransitions();
+  }
+
+  fireTear(dirX, dirY) {
+    this.swingTimer = 12;
+    const effDmg = this.getEffectiveDamage();
+
+    if (this.hasMeowmere && this.hasHorns) {
+      audio.playMeow();
+      projectiles.push(new Projectile(
+        this.x, this.y,
+        dirX * (this.tearSpeed + 2), dirY * (this.tearSpeed + 2),
+        effDmg * 1.5, 'meowmere_brimstone', this.tearScale * 1.4, true, true
+      ));
+    } else if (this.hasMeowmere) {
+      audio.playMeow();
+      projectiles.push(new Projectile(
+        this.x, this.y,
+        dirX * (this.tearSpeed + 1), dirY * (this.tearSpeed + 1),
+        effDmg, 'meowmere', this.tearScale, true, this.homingTears
+      ));
+    } else if (this.hasHorns) {
+      audio.playTear();
+      projectiles.push(new Projectile(
+        this.x, this.y,
+        dirX * (this.tearSpeed + 1.5), dirY * (this.tearSpeed + 1.5),
+        effDmg * 1.3, 'horns', this.tearScale * 1.2, false, this.homingTears
+      ));
+    } else {
+      audio.playTear();
+      projectiles.push(new Projectile(
+        this.x, this.y,
+        dirX * this.tearSpeed, dirY * this.tearSpeed,
+        effDmg, 'normal', this.tearScale, false, this.homingTears
+      ));
+    }
+  }
+
+  placeBomb() {
+    this.bombs--;
+    roomObjects.push(new Bomb(this.x, this.y));
+    audio.playHit();
+  }
+
+  checkDoorTransitions() {
+    if (!currentRoom.cleared || roomTransition) return;
+
+    const centerX = OFFSET_X + (ROOM_GRID_W * TILE_SIZE) / 2;
+    const centerY = OFFSET_Y + (ROOM_GRID_H * TILE_SIZE) / 2;
+
+    if (currentRoom.doors.top && this.y <= OFFSET_Y + TILE_SIZE && Math.abs(this.x - centerX) < 40) {
+      startRoomTransition('top');
+    }
+    else if (currentRoom.doors.bottom && this.y >= OFFSET_Y + (ROOM_GRID_H - 1) * TILE_SIZE && Math.abs(this.x - centerX) < 40) {
+      startRoomTransition('bottom');
+    }
+    else if (currentRoom.doors.left && this.x <= OFFSET_X + TILE_SIZE && Math.abs(this.y - centerY) < 40) {
+      startRoomTransition('left');
+    }
+    else if (currentRoom.doors.right && this.x >= OFFSET_X + (ROOM_GRID_W - 1) * TILE_SIZE && Math.abs(this.y - centerY) < 40) {
+      startRoomTransition('right');
+    }
+  }
+
+  takeDamage(amount) {
+    if (this.invulnTimer > 0) return;
+    this.invulnTimer = 45;
+    audio.playHit();
+
+    if (this.soulHp > 0) {
+      this.soulHp -= amount;
+      if (this.soulHp < 0) {
+        this.hp += this.soulHp;
+        this.soulHp = 0;
+      }
+    } else {
+      this.hp -= amount;
+    }
+
+    for (let i = 0; i < 8; i++) {
+      particles.push(new Particle(this.x, this.y, '#ff0044', 3));
+    }
+
+    if (this.hp <= 0 && this.soulHp <= 0) {
+      triggerGameOver('Вас одолели подземелья ' + FLOORS[currentFloorIdx].name + '!');
+    }
+  }
+
+  draw(ctx) {
+    if (this.invulnTimer > 0 && Math.floor(this.invulnTimer / 4) % 2 === 0) return;
+
+    if (this.hasHalo) {
+      ctx.save();
+      ctx.strokeStyle = '#ffeb3b';
+      ctx.lineWidth = 3;
+      ctx.shadowColor = '#ffeb3b';
+      ctx.shadowBlur = 10;
+      ctx.beginPath();
+      ctx.ellipse(this.x, this.y - 28 * this.scale, 16 * this.scale, 6 * this.scale, 0, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    if (this.hasMeowmere && this.swingTimer > 0) {
+      ctx.save();
+      ctx.translate(this.x, this.y);
+      ctx.rotate((12 - this.swingTimer) * 0.3);
+      if (IMAGES['meowmere_32.png']) {
+        ctx.drawImage(IMAGES['meowmere_32.png'], 10, -20, 32 * this.scale, 32 * this.scale);
+      }
+      ctx.restore();
+    }
+
+    const img = IMAGES[this.charData.sheet];
+    const size = 48 * this.scale;
+    if (img) {
+      if (this.charData.isSinImg) {
+        ctx.drawImage(img, this.x - size / 2, this.y - size / 2 - 4, size, size * 1.15);
+      } else {
+        const sx = this.animFrame * 32;
+        const sy = this.dir * 32;
+        ctx.drawImage(img, sx, sy, 32, 32, this.x - size / 2, this.y - size / 2, size, size);
+      }
+    } else {
+      ctx.fillStyle = '#ff44aa';
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    if (roomGraceTimer > 0) {
+      ctx.save();
+      ctx.strokeStyle = '#00f0ff';
+      ctx.lineWidth = 2;
+      ctx.shadowColor = '#00f0ff';
+      ctx.shadowBlur = 12;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.radius + 12, 0, Math.PI * 2);
+      ctx.stroke();
+      
+      ctx.fillStyle = '#00f0ff';
+      ctx.font = 'bold 11px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('⌛ ' + (roomGraceTimer / 60).toFixed(1) + 's ГОТОВНОСТЬ', this.x, this.y - 32);
+      ctx.restore();
+    }
+  }
+}
+
+// --- PROJECTILE CLASS ---
+class Projectile {
+  constructor(x, y, vx, vy, damage, type, scale = 1.0, bouncing = false, homing = false) {
+    this.x = x;
+    this.y = y;
+    this.vx = vx;
+    this.vy = vy;
+    this.damage = damage;
+    this.type = type;
+    this.scale = scale;
+    this.radius = 8 * scale;
+    this.bouncing = bouncing;
+    this.bouncesLeft = bouncing ? 3 : 0;
+    this.homing = homing;
+    this.life = 120;
+    this.angle = Math.atan2(vy, vx);
+  }
+
+  update() {
+    if (this.homing && enemies.length > 0) {
+      let nearest = null;
+      let minDist = 9999;
+      enemies.forEach(e => {
+        const d = Math.hypot(e.x - this.x, e.y - this.y);
+        if (d < minDist) {
+          minDist = d;
+          nearest = e;
+        }
+      });
+      if (nearest) {
+        const targetAngle = Math.atan2(nearest.y - this.y, nearest.x - this.x);
+        const speed = Math.hypot(this.vx, this.vy);
+        this.vx += Math.cos(targetAngle) * 0.6;
+        this.vy += Math.sin(targetAngle) * 0.6;
+        const newSpeed = Math.hypot(this.vx, this.vy);
+        this.vx = (this.vx / newSpeed) * speed;
+        this.vy = (this.vy / newSpeed) * speed;
+        this.angle = Math.atan2(this.vy, this.vx);
+      }
+    }
+
+    this.x += this.vx;
+    this.y += this.vy;
+    this.life--;
+
+    if ((this.type === 'meowmere' || this.type === 'meowmere_brimstone') && Math.random() < 0.6) {
+      const colors = ['#ff77cc', '#33ffff', '#ffff55', '#bb66ff', '#ff1144'];
+      const col = colors[Math.floor(Math.random() * colors.length)];
+      particles.push(new Particle(this.x, this.y, col, 3, 0.5));
+    }
+
+    const minX = OFFSET_X + TILE_SIZE / 2;
+    const maxX = OFFSET_X + (ROOM_GRID_W - 0.5) * TILE_SIZE;
+    const minY = OFFSET_Y + TILE_SIZE / 2;
+    const maxY = OFFSET_Y + (ROOM_GRID_H - 0.5) * TILE_SIZE;
+
+    let hitWall = false;
+    if (this.x <= minX || this.x >= maxX) {
+      this.vx = -this.vx;
+      hitWall = true;
+    }
+    if (this.y <= minY || this.y >= maxY) {
+      this.vy = -this.vy;
+      hitWall = true;
+    }
+
+    if (hitWall) {
+      if (this.bouncing && this.bouncesLeft > 0) {
+        this.bouncesLeft--;
+        audio.playMeow();
+        this.angle = Math.atan2(this.vy, this.vx);
+      } else {
+        this.life = 0;
+      }
+    }
+  }
+
+  draw(ctx) {
+    ctx.save();
+    if (this.type === 'meowmere_brimstone') {
+      ctx.translate(this.x, this.y);
+      ctx.rotate(this.angle + Math.PI / 4);
+      ctx.fillStyle = '#ff1144';
+      ctx.shadowColor = '#ff00aa';
+      ctx.shadowBlur = 15;
+      ctx.beginPath();
+      ctx.arc(0, 0, this.radius * 1.5, 0, Math.PI * 2);
+      ctx.fill();
+      if (IMAGES['meowmere_32.png']) {
+        ctx.drawImage(IMAGES['meowmere_32.png'], -16, -16, 32 * this.scale, 32 * this.scale);
+      }
+    } else if (this.type === 'meowmere') {
+      ctx.translate(this.x, this.y);
+      ctx.rotate(this.angle + Math.PI / 4);
+      if (IMAGES['meowmere_32.png']) {
+        ctx.drawImage(IMAGES['meowmere_32.png'], -16, -16, 32 * this.scale, 32 * this.scale);
+      } else {
+        ctx.fillStyle = '#ff77d6';
+        ctx.beginPath();
+        ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    } else if (this.type === 'horns') {
+      ctx.fillStyle = '#cc0022';
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (this.type === 'enemy_blood') {
+      ctx.fillStyle = '#ff1111';
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (this.type === 'enemy_cyan') {
+      ctx.fillStyle = '#00f0ff';
+      ctx.shadowColor = '#00f0ff';
+      ctx.shadowBlur = 8;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+      ctx.fill();
+    } else {
+      ctx.fillStyle = this.homing ? '#aa22ff' : '#44aaff';
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+}
+
+// --- ENEMY & ANIMATED BOSS CLASS ---
+class Enemy {
+  constructor(x, y, type) {
+    this.x = x;
+    this.y = y;
+    this.type = type;
+    this.radius = 18;
+    this.hp = 12 + currentFloorIdx * 5;
+    this.maxHp = this.hp;
+    this.speed = 1.4;
+    this.sheet = 'char_snake.png';
+    this.isSin = false;
+    this.isBoss = false;
+
+    // ALL 14 MOBS MAPPED TO EXTRACTED SPRITE ASSETS!
+    if (type === 'snake') {
+      this.sheet = 'char_snake.png';
+      this.speed = 1.8;
+    } else if (type === 'sosal') {
+      this.sheet = 'char_sosal_devil.png';
+      this.speed = 1.4;
+    } else if (type === 'grey_mask') {
+      this.sheet = 'char_grey_mask.png';
+      this.speed = 1.5;
+    } else if (type === 'clown') {
+      this.sheet = 'char_clown.png';
+      this.speed = 1.2;
+    } else if (type === 'mouse') {
+      this.sheet = 'char_mouse.png';
+      this.speed = 2.0;
+    } else if (type === 'chicken') {
+      this.sheet = 'char_chicken.png';
+      this.speed = 1.6;
+    } else if (type === 'builder') {
+      this.sheet = 'char_builder.png';
+      this.speed = 1.3;
+    } else if (type === 'boxer') {
+      this.sheet = 'char_boxer.png';
+      this.speed = 1.9;
+    } else if (type === 'bunny') {
+      this.sheet = 'char_bunny.png';
+      this.speed = 1.7;
+    } else if (type === 'seven_mob') {
+      this.sheet = 'char_seven.png';
+      this.speed = 1.5;
+    } else if (type === 'angel_mob') {
+      this.sheet = 'char_angel.png';
+      this.speed = 1.4;
+    } else if (type === 'duck_mob') {
+      this.sheet = 'char_duck.png';
+      this.speed = 1.5;
+    } else if (type === 'sans_mob') {
+      this.sheet = 'char_sans_boss.png';
+      this.speed = 1.3;
+      this.radius = 24;
+    } else if (type === 'brimstone_demon') {
+      this.sheet = 'char_sosal_devil.png';
+      this.speed = 1.2;
+      this.hp = 35 + currentFloorIdx * 5;
+      this.maxHp = this.hp;
+      this.isBrimstone = true;
+    }
+    else if (type.startsWith('sin_')) {
+      this.sheet = type + '.png';
+      this.isSin = true;
+      this.radius = 30;
+      this.hp = 90 + currentFloorIdx * 15;
+      this.maxHp = this.hp;
+      this.speed = 2.5;
+    }
+    // Floor Bosses
+    else if (type === 'boss_snake') {
+      this.sheet = 'char_snake.png';
+      this.isBoss = true;
+      this.bossName = 'ЗМЕИНЫЙ КОРОЛЬ';
+      this.radius = 40;
+      this.hp = 200;
+      this.maxHp = 200;
+      this.speed = 1.5;
+    } else if (type === 'boss_sans') {
+      this.sheet = 'char_sans_boss.png';
+      this.isBoss = true;
+      this.bossName = 'ЧЕРЕП ГАСТЕРА';
+      this.radius = 42;
+      this.hp = 260;
+      this.maxHp = 260;
+      this.speed = 1.3;
+    } else if (type === 'boss_clown') {
+      this.sheet = 'char_clown.png';
+      this.isBoss = true;
+      this.bossName = 'КОРОЛЬ КЛОУНОВ';
+      this.radius = 45;
+      this.hp = 320;
+      this.maxHp = 320;
+      this.speed = 1.1;
+    } else if (type === 'boss_sosal') {
+      this.sheet = 'boss_sosal.png';
+      this.isBoss = true;
+      this.bossName = 'ДЕМОН SOSAL';
+      this.radius = 45;
+      this.hp = 400;
+      this.maxHp = 400;
+      this.speed = 1.2;
+    } else if (type === 'boss_mask') {
+      this.sheet = 'char_grey_mask.png';
+      this.isBoss = true;
+      this.bossName = 'МАСКА УЖАСА';
+      this.radius = 48;
+      this.hp = 480;
+      this.maxHp = 480;
+      this.speed = 1.4;
+    } else if (type === 'boss_sins_duo') {
+      this.sheet = 'sin_pride.png';
+      this.isBoss = true;
+      this.bossName = 'СОВЕТ ГРЕХОВ';
+      this.radius = 45;
+      this.hp = 550;
+      this.maxHp = 550;
+      this.speed = 1.2;
+    } else if (type === 'boss_fly_lord') {
+      this.sheet = 'char_boxer.png';
+      this.isBoss = true;
+      this.bossName = 'ВЕЛЬЗЕВУЛ';
+      this.radius = 50;
+      this.hp = 650;
+      this.maxHp = 650;
+      this.speed = 1.1;
+    } else if (type === 'boss_satan') {
+      this.sheet = 'sin_wrath.png';
+      this.isBoss = true;
+      this.bossName = 'САТАНА';
+      this.radius = 52;
+      this.hp = 780;
+      this.maxHp = 780;
+      this.speed = 1.5;
+    }
+    // FINAL BOSS: MEGA SATAN!
+    else if (type === 'boss_mega_satan') {
+      this.sheet = 'boss_mega_satan.png';
+      this.isBoss = true;
+      this.bossName = '💥 МЕГА САТАНА (CYBER MEGA SATAN) 💥';
+      this.radius = 65;
+      this.hp = 1000;
+      this.maxHp = 1000;
+      this.speed = 1.4;
+    }
+
+    this.dir = 0;
+    this.animFrame = 0;
+    this.animTimer = 0;
+    this.shootTimer = 0;
+    this.brimstoneBeam = false;
+    this.aimLine = false;
+  }
+
+  update() {
+    if (!player) return;
+
+    if (roomGraceTimer > 27) return;
+
+    const angle = Math.atan2(player.y - this.y, player.x - this.x);
+    this.x += Math.cos(angle) * this.speed;
+    this.y += Math.sin(angle) * this.speed;
+
+    if (Math.abs(Math.cos(angle)) > Math.abs(Math.sin(angle))) {
+      this.dir = Math.cos(angle) > 0 ? 2 : 1;
+    } else {
+      this.dir = Math.sin(angle) > 0 ? 0 : 3;
+    }
+
+    this.animTimer++;
+    if (this.animTimer % 8 === 0) {
+      this.animFrame = (this.animFrame + 1) % 3;
+    }
+
+    // Telegraphed Brimstone Enemy (Shows dotted warning sight line for 1.0s before firing!)
+    if (this.isBrimstone) {
+      this.shootTimer++;
+      if (this.shootTimer >= 40 && this.shootTimer < 80) {
+        this.aimLine = true; // TELEGRAPH AIMING LINE!
+      } else if (this.shootTimer >= 80) {
+        this.aimLine = false;
+        this.brimstoneBeam = true; // FIRING LASER!
+        if (Math.abs(player.y - this.y) < 25 || Math.abs(player.x - this.x) < 25) {
+          player.takeDamage(1);
+        }
+        if (this.shootTimer >= 105) {
+          this.shootTimer = 0;
+          this.brimstoneBeam = false;
+        }
+      }
+    }
+    // Boss Multi-Phase Attacks!
+    else if (this.type === 'boss_mega_satan' && this.shootTimer >= 45) {
+      this.shootTimer = 0;
+      for (let i = 0; i < 10; i++) {
+        const a = (i * Math.PI) / 5;
+        enemyProjectiles.push(new Projectile(this.x, this.y, Math.cos(a) * 5, Math.sin(a) * 5, 1, 'enemy_cyan', 1.4));
+      }
+      if (Math.random() < 0.3) {
+        roomObjects.push(new Bomb(this.x, this.y));
+      }
+    } else if (this.type === 'boss_sans' && this.shootTimer >= 50) {
+      this.shootTimer = 0;
+      for (let i = 0; i < 6; i++) {
+        const a = angle + (i - 2.5) * 0.2;
+        enemyProjectiles.push(new Projectile(this.x, this.y, Math.cos(a) * 5.5, Math.sin(a) * 5.5, 1, 'enemy_cyan'));
+      }
+    } else if (this.isBoss && this.shootTimer >= 65) {
+      this.shootTimer = 0;
+      for (let i = 0; i < 8; i++) {
+        const a = (i * Math.PI) / 4;
+        enemyProjectiles.push(new Projectile(this.x, this.y, Math.cos(a) * 4.5, Math.sin(a) * 4.5, 1, 'enemy_blood'));
+      }
+    } else if (this.type === 'sosal' && this.shootTimer >= 100) {
+      this.shootTimer = 0;
+      enemyProjectiles.push(new Projectile(this.x, this.y, Math.cos(angle) * 4, Math.sin(angle) * 4, 1, 'enemy_blood'));
+    }
+
+    const distP = Math.hypot(player.x - this.x, player.y - this.y);
+    if (distP < this.radius + player.radius) {
+      player.takeDamage(1);
+    }
+  }
+
+  takeDamage(amount) {
+    this.hp -= amount;
+    audio.playHit();
+
+    floatingTexts.push(new FloatingText(this.x, this.y - 15, '-' + amount.toFixed(1), '#ff5555'));
+    for (let i = 0; i < 4; i++) {
+      particles.push(new Particle(this.x, this.y, '#aa0000', 3));
+    }
+
+    if (this.hp <= 0) {
+      if (this.isSin) {
+        for (let i = 0; i < 3; i++) {
+          pickups.push(new Pickup(this.x + (i - 1) * 20, this.y, 'coin'));
+        }
+      } else {
+        const rand = Math.random();
+        if (rand < 0.05) {
+          pickups.push(new Pickup(this.x, this.y, 'heart'));
+        } else if (rand < 0.25) {
+          pickups.push(new Pickup(this.x, this.y, 'coin'));
+        }
+      }
+
+      if (this.isBoss) {
+        if (currentFloorIdx < FLOORS.length - 1) {
+          const trapdoorObj = new Trapdoor(CANVAS_W / 2, CANVAS_H / 2);
+          currentRoom.objects.push(trapdoorObj);
+          roomObjects.push(trapdoorObj);
+          
+          const p = new Pickup(CANVAS_W / 2 + 60, CANVAS_H / 2, 'pedestal_item');
+          const keys = Object.keys(ITEMS_DB);
+          p.itemId = keys[Math.floor(Math.random() * keys.length)];
+          pickups.push(p);
+
+          if (Math.random() < 0.5) {
+            const specType = Math.random() < 0.5 ? 'devil' : 'angel';
+            const doorObj = new SpecialDoor(CANVAS_W / 2 - 120, OFFSET_Y, specType);
+            currentRoom.objects.push(doorObj);
+            roomObjects.push(doorObj);
+          }
+        } else {
+          triggerVictory();
+        }
+      }
+    }
+  }
+
+  draw(ctx) {
+    // Telegraph aiming sight line for Brimstone Enemy
+    if (this.aimLine) {
+      ctx.save();
+      ctx.strokeStyle = 'rgba(255, 0, 50, 0.6)';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([6, 6]);
+      ctx.beginPath();
+      ctx.moveTo(this.x, this.y);
+      ctx.lineTo(player.x, player.y);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    // Active Brimstone Laser Beam
+    if (this.brimstoneBeam) {
+      ctx.save();
+      ctx.strokeStyle = '#ff0022';
+      ctx.lineWidth = 14;
+      ctx.shadowColor = '#ff0022';
+      ctx.shadowBlur = 15;
+      ctx.beginPath();
+      ctx.moveTo(this.x, this.y);
+      ctx.lineTo(player.x, player.y);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    const img = IMAGES[this.sheet];
+    if (img) {
+      if (this.type === 'boss_mega_satan') {
+        const size = 160;
+        const bobY = Math.sin(Date.now() / 250) * 8;
+        ctx.drawImage(img, this.x - size / 2, this.y - size / 2 + bobY, size, size);
+      } else if (this.isSin) {
+        const size = this.radius * 2.2;
+        ctx.drawImage(img, this.x - size / 2, this.y - size / 2, size, size * 1.15);
+      } else if (this.isBoss) {
+        const size = this.radius * 2.2;
+        const sx = this.animFrame * 32;
+        const sy = this.dir * 32;
+        ctx.drawImage(img, sx, sy, 32, 32, this.x - size / 2, this.y - size / 2, size, size);
+      } else {
+        const sx = this.animFrame * 32;
+        const sy = this.dir * 32;
+        ctx.drawImage(img, sx, sy, 32, 32, this.x - 24, this.y - 24, 48, 48);
+      }
+    } else {
+      ctx.fillStyle = '#ff2222';
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    if (this.isBoss) {
+      ctx.fillStyle = 'rgba(0,0,0,0.8)';
+      ctx.fillRect(CANVAS_W / 2 - 180, 20, 360, 18);
+      ctx.fillStyle = this.type === 'boss_mega_satan' ? '#ff00aa' : '#ff1144';
+      ctx.fillRect(CANVAS_W / 2 - 178, 22, (Math.max(0, this.hp) / this.maxHp) * 356, 14);
+      ctx.strokeStyle = '#ffffff';
+      ctx.strokeRect(CANVAS_W / 2 - 180, 20, 360, 18);
+      
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 12px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(this.bossName || 'БОСС', CANVAS_W / 2, 15);
+    }
+  }
+}
+
+// --- SPECIAL DOOR & SPECIAL ROOM TRANSITION ---
+class SpecialDoor {
+  constructor(x, y, specType) {
+    this.x = x;
+    this.y = y;
+    this.specType = specType;
+    this.radius = 28;
+    this.playerNear = false;
+  }
+  update() {
+    const dist = Math.hypot(player.x - this.x, player.y - this.y);
+    this.playerNear = dist < player.radius + this.radius + 15;
+
+    if (this.playerNear && (keysHeld['KeyE'] || keysHeld['KeyF'] || keysHeld['Space'])) {
+      keysHeld['KeyE'] = false;
+      keysHeld['KeyF'] = false;
+      keysHeld['Space'] = false;
+      enterSpecialRoom(this.specType);
+    }
+  }
+  draw(ctx) {
+    ctx.save();
+    ctx.fillStyle = this.specType === 'devil' ? '#ff0033' : '#ffffff';
+    ctx.shadowColor = this.specType === 'devil' ? '#ff0033' : '#ffffaa';
+    ctx.shadowBlur = 12;
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, 22, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 16px monospace';
+    ctx.fillText(this.specType === 'devil' ? '👿' : '😇', this.x, this.y + 6);
+
+    if (this.playerNear) {
+      ctx.fillStyle = this.specType === 'devil' ? '#ff3366' : '#ffff55';
+      ctx.font = 'bold 12px monospace';
+      ctx.fillText(this.specType === 'devil' ? '[ СДЕЛКА С ДЬЯВОЛОМ (E) ]' : '[ АНГЕЛЬСКАЯ КОМНАТА (E) ]', this.x, this.y + 35);
+    }
+    ctx.restore();
+  }
+}
+
+function enterSpecialRoom(type) {
+  const parentRoom = currentRoom;
+  
+  const specRoom = {
+    x: parentRoom.x,
+    y: parentRoom.y,
+    type: type, // 'devil' or 'angel'
+    cleared: true,
+    visited: true,
+    doors: { bottom: true, top: false, left: false, right: false },
+    tiles: Array(ROOM_GRID_H).fill(0).map(() => Array(ROOM_GRID_W).fill(0)),
+    enemiesToSpawn: [],
+    objects: [],
+    parentBossRoom: parentRoom
+  };
+
+  currentRoom = specRoom;
+  enemies = [];
+  projectiles = [];
+  enemyProjectiles = [];
+  pickups = [];
+  roomObjects = [];
+
+  const retDoor = new ReturnDoor(CANVAS_W / 2, OFFSET_Y + (ROOM_GRID_H - 1) * TILE_SIZE, parentRoom);
+  specRoom.objects.push(retDoor);
+  roomObjects.push(retDoor);
+
+  if (type === 'devil') {
+    showItemBanner('СДЕЛКА С ДЬЯВОЛОМ!', 'Нажмите E чтобы отдать 2 Сердца за предмет!', RAW_ASSETS['meowmere_64.png']);
+    
+    const p1 = new Pickup(CANVAS_W / 2 - 80, CANVAS_H / 2, 'pedestal_item');
+    p1.itemId = 'horns';
+    p1.cost = 2;
+    pickups.push(p1);
+
+    const p2 = new Pickup(CANVAS_W / 2 + 80, CANVAS_H / 2, 'pedestal_item');
+    p2.itemId = 'polyphemus';
+    p2.cost = 2;
+    pickups.push(p2);
+  } else {
+    showItemBanner('АНГЕЛЬСКАЯ КОМНАТА!', 'Благословение Ангела — Нажмите E чтобы взять!', RAW_ASSETS['meowmere_64.png']);
+    
+    const p1 = new Pickup(CANVAS_W / 2 - 80, CANVAS_H / 2, 'pedestal_item');
+    p1.itemId = 'sacred_heart';
+    p1.cost = 0;
+    pickups.push(p1);
+
+    const p2 = new Pickup(CANVAS_W / 2 + 80, CANVAS_H / 2, 'pedestal_item');
+    p2.itemId = 'halo';
+    p2.cost = 0;
+    pickups.push(p2);
+  }
+
+  player.x = CANVAS_W / 2;
+  player.y = OFFSET_Y + (ROOM_GRID_H - 1.5) * TILE_SIZE;
+}
+
+class ReturnDoor {
+  constructor(x, y, parentRoom) {
+    this.x = x;
+    this.y = y;
+    this.parentRoom = parentRoom;
+    this.radius = 28;
+    this.playerNear = false;
+  }
+  update() {
+    const dist = Math.hypot(player.x - this.x, player.y - this.y);
+    this.playerNear = dist < player.radius + this.radius + 15;
+
+    if (this.playerNear && (keysHeld['KeyE'] || keysHeld['KeyF'] || keysHeld['Space'])) {
+      keysHeld['KeyE'] = false;
+      keysHeld['KeyF'] = false;
+      keysHeld['Space'] = false;
+      
+      currentRoom = this.parentRoom;
+      enterRoom();
+      player.x = CANVAS_W / 2;
+      player.y = OFFSET_Y + 1.5 * TILE_SIZE;
+    }
+  }
+  draw(ctx) {
+    ctx.fillStyle = '#77ff77';
+    ctx.fillRect(this.x - 30, this.y, 60, 15);
+    if (this.playerNear) {
+      ctx.fillStyle = '#00ffff';
+      ctx.font = 'bold 12px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('[ ВЫЙТИ В КОМНАТУ БОССА (E) ]', this.x, this.y - 12);
+    }
+  }
+}
+
+// --- TRAPDOOR CLASS ---
+class Trapdoor {
+  constructor(x, y) {
+    this.x = x;
+    this.y = y;
+    this.radius = 28;
+    this.activationTimer = 60;
+    this.playerNear = false;
+  }
+  update() {
+    if (this.activationTimer > 0) {
+      this.activationTimer--;
+      return;
+    }
+
+    const dist = Math.hypot(player.x - this.x, player.y - this.y);
+    this.playerNear = dist < player.radius + this.radius + 15;
+
+    if (this.playerNear && (keysHeld['KeyE'] || keysHeld['KeyF'] || keysHeld['Space'])) {
+      keysHeld['KeyE'] = false;
+      keysHeld['KeyF'] = false;
+      keysHeld['Space'] = false;
+      nextFloor();
+    }
+  }
+  draw(ctx) {
+    ctx.fillStyle = '#110a14';
+    ctx.beginPath();
+    ctx.ellipse(this.x, this.y, 28, 18, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = this.activationTimer > 0 ? '#ffaa00' : (this.playerNear ? '#00ffff' : '#77ff77');
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    ctx.textAlign = 'center';
+    if (this.activationTimer > 0) {
+      ctx.fillStyle = '#ffaa00';
+      ctx.font = 'bold 11px monospace';
+      ctx.fillText('ЛЮК ОТКРЫВАЕТСЯ...', this.x, this.y - 24);
+    } else if (this.playerNear) {
+      ctx.fillStyle = '#00ffff';
+      ctx.font = 'bold 13px monospace';
+      ctx.fillText('[ НАЖМИТЕ E ЧТОБЫ ВОЙТИ ]', this.x, this.y - 24);
+    } else {
+      ctx.fillStyle = '#77ff77';
+      ctx.font = 'bold 11px monospace';
+      ctx.fillText('ЛЮК НА СЛЕДУЮЩИЙ ЭТАЖ', this.x, this.y - 24);
+    }
+  }
+}
+
+// --- BOMB CLASS ---
+class Bomb {
+  constructor(x, y) {
+    this.x = x;
+    this.y = y;
+    this.timer = 120;
+    this.radius = 12;
+  }
+  update() {
+    this.timer--;
+    if (this.timer <= 0) {
+      this.explode();
+    }
+  }
+  explode() {
+    audio.playExplosion();
+    const blastRadius = 90;
+
+    enemies.forEach(e => {
+      if (Math.hypot(e.x - this.x, e.y - this.y) < blastRadius) {
+        e.takeDamage(45);
+      }
+    });
+
+    if (Math.hypot(player.x - this.x, player.y - this.y) < blastRadius) {
+      player.takeDamage(2);
+    }
+
+    for (let i = 0; i < 20; i++) {
+      particles.push(new Particle(this.x, this.y, '#ff9900', 6, 1.5));
+    }
+  }
+  draw(ctx) {
+    ctx.fillStyle = '#222';
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+    ctx.fill();
+    if (Math.floor(this.timer / 6) % 2 === 0) {
+      ctx.fillStyle = '#ffcc00';
+      ctx.fillRect(this.x - 2, this.y - 18, 4, 4);
+    }
+  }
+}
+
+// --- PICKUP CLASS ---
+class Pickup {
+  constructor(x, y, type) {
+    this.x = x;
+    this.y = y;
+    this.type = type;
+    this.radius = 14;
+    this.itemId = null;
+    this.cost = 0;
+    this.playerNear = false;
+  }
+  update() {
+    if (!player) return false;
+    const dist = Math.hypot(player.x - this.x, player.y - this.y);
+    this.playerNear = dist < player.radius + this.radius + 10;
+
+    if (this.playerNear && (this.type === 'coin' || this.type === 'heart')) {
+      if (this.type === 'coin') {
+        player.coins++;
+        audio.playPickup();
+        return true;
+      } else if (this.type === 'heart') {
+        if (player.hp < player.maxHp) {
+          player.hp = Math.min(player.maxHp, player.hp + 2);
+          audio.playPickup();
+          return true;
+        }
+      }
+    } else if (this.playerNear && this.type === 'pedestal_item' && (keysHeld['KeyE'] || keysHeld['KeyF'] || keysHeld['Space'])) {
+      if (this.cost > 0) {
+        const totalHp = player.hp + player.soulHp;
+        const requiredHp = this.cost * 2;
+
+        if (totalHp >= requiredHp) {
+          let needed = requiredHp;
+          if (player.hp >= needed) {
+            player.hp -= needed;
+          } else {
+            needed -= player.hp;
+            player.hp = 0;
+            player.soulHp -= needed;
+          }
+
+          const item = ITEMS_DB[this.itemId];
+          if (item) {
+            item.apply(player);
+            const icon = item.icon ? RAW_ASSETS[item.icon] : RAW_ASSETS['meowmere_64.png'];
+            showItemBanner(item.name, item.desc, icon);
+          }
+          keysHeld['KeyE'] = false;
+          keysHeld['KeyF'] = false;
+          keysHeld['Space'] = false;
+
+          if (player.hp <= 0 && player.soulHp <= 0) {
+            triggerGameOver('Вы отдали последнюю каплю жизни за сделку с дьяволом!');
+          }
+
+          return true;
+        } else {
+          floatingTexts.push(new FloatingText(this.x, this.y - 20, 'НЕДОСТАТОЧНО СЕРДЕЦ!', '#ff2222'));
+          keysHeld['KeyE'] = false;
+          keysHeld['KeyF'] = false;
+          keysHeld['Space'] = false;
+        }
+      } else {
+        const item = ITEMS_DB[this.itemId];
+        if (item) {
+          item.apply(player);
+          const icon = item.icon ? RAW_ASSETS[item.icon] : RAW_ASSETS['meowmere_64.png'];
+          showItemBanner(item.name, item.desc, icon);
+        }
+        keysHeld['KeyE'] = false;
+        keysHeld['KeyF'] = false;
+        keysHeld['Space'] = false;
+        return true;
+      }
+    }
+    return false;
+  }
+  draw(ctx) {
+    ctx.save();
+    if (this.type === 'coin') {
+      ctx.fillStyle = '#ffcc00';
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, 8, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#000';
+      ctx.font = '10px monospace';
+      ctx.fillText('¢', this.x - 3, this.y + 3);
+    } else if (this.type === 'heart') {
+      ctx.fillStyle = '#ff0044';
+      ctx.beginPath();
+      ctx.arc(this.x - 4, this.y - 2, 6, 0, Math.PI * 2);
+      ctx.arc(this.x + 4, this.y - 2, 6, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(this.x - 9, this.y);
+      ctx.lineTo(this.x + 9, this.y);
+      ctx.lineTo(this.x, this.y + 9);
+      ctx.fill();
+    } else if (this.type === 'pedestal_item') {
+      ctx.fillStyle = '#5a3d5c';
+      ctx.fillRect(this.x - 20, this.y + 10, 40, 16);
+
+      if (this.itemId === 'meowmere' && IMAGES['meowmere_64.png']) {
+        const floatY = Math.sin(Date.now() / 200) * 6;
+        ctx.drawImage(IMAGES['meowmere_64.png'], this.x - 24, this.y - 30 + floatY, 48, 48);
+      } else {
+        ctx.fillStyle = '#ff77cc';
+        ctx.font = '18px monospace';
+        ctx.fillText('🎁', this.x - 10, this.y - 5);
+      }
+
+      ctx.textAlign = 'center';
+      if (this.cost > 0) {
+        ctx.fillStyle = '#ff2255';
+        ctx.font = 'bold 11px monospace';
+        ctx.fillText('ЦЕНА: ❤️❤️ (2 СЕРДЦА)', this.x, this.y + 38);
+      } else if (this.playerNear) {
+        ctx.fillStyle = '#00ffff';
+        ctx.font = 'bold 11px monospace';
+        ctx.fillText('[ НАЖМИТЕ E ЧТОБЫ ВЗЯТЬ ]', this.x, this.y + 38);
+      }
+    }
+    ctx.restore();
+  }
+}
+
+// --- PARTICLES & FLOATING TEXT ---
+class Particle {
+  constructor(x, y, color, size = 3, speedScale = 1.0) {
+    this.x = x;
+    this.y = y;
+    this.color = color;
+    this.size = size;
+    const a = Math.random() * Math.PI * 2;
+    const spd = (1 + Math.random() * 3) * speedScale;
+    this.vx = Math.cos(a) * spd;
+    this.vy = Math.sin(a) * spd;
+    this.life = 20 + Math.random() * 15;
+    this.maxLife = this.life;
+  }
+  update() {
+    this.x += this.vx;
+    this.y += this.vy;
+    this.life--;
+  }
+  draw(ctx) {
+    ctx.fillStyle = this.color;
+    ctx.globalAlpha = Math.max(0, this.life / this.maxLife);
+    ctx.fillRect(this.x, this.y, this.size, this.size);
+    ctx.globalAlpha = 1.0;
+  }
+}
+
+class FloatingText {
+  constructor(x, y, text, color = '#ffffff') {
+    this.x = x;
+    this.y = y;
+    this.text = text;
+    this.color = color;
+    this.life = 30;
+  }
+  update() {
+    this.y -= 0.8;
+    this.life--;
+  }
+  draw(ctx) {
+    ctx.fillStyle = this.color;
+    ctx.font = 'bold 14px monospace';
+    ctx.fillText(this.text, this.x, this.y);
+  }
+}
+
+// --- ROOM TRANSITION & ENTERING ---
+function startRoomTransition(dir) {
+  let targetX = currentRoomPos.x;
+  let targetY = currentRoomPos.y;
+  if (dir === 'top') targetY--;
+  if (dir === 'bottom') targetY++;
+  if (dir === 'left') targetX--;
+  if (dir === 'right') targetX++;
+
+  const nextRoom = dungeonMap[targetY][targetX];
+  if (!nextRoom) return;
+
+  roomTransition = {
+    dir,
+    progress: 0,
+    targetX,
+    targetY,
+    nextRoom
+  };
+}
+
+function enterRoom() {
+  currentRoom.visited = true;
+  enemies = [];
+  projectiles = [];
+  enemyProjectiles = [];
+  pickups = [];
+  
+  currentRoom.objects = currentRoom.objects || [];
+  roomObjects = [...currentRoom.objects];
+
+  roomGraceTimer = 72;
+  player.invulnTimer = 72;
+
+  if (!currentRoom.cleared && currentRoom.enemiesToSpawn.length > 0) {
+    currentRoom.enemiesToSpawn.forEach(etype => {
+      let rx = player.x, ry = player.y;
+      while (Math.hypot(rx - player.x, ry - player.y) < 180) {
+        rx = OFFSET_X + TILE_SIZE * (2 + Math.floor(Math.random() * 11));
+        ry = OFFSET_Y + TILE_SIZE * (2 + Math.floor(Math.random() * 5));
+      }
+      enemies.push(new Enemy(rx, ry, etype));
+    });
+
+    if (currentRoom.type === 'sin') {
+      showItemBanner('СМЕРТНЫЙ ГРЕХ!', 'Остерегайтесь атак мини-босса!', RAW_ASSETS['sin_' + (currentRoom.sinType || 'wrath') + '_64.png']);
+    } else if (currentRoom.type === 'boss') {
+      showItemBanner('БОСС ЭТАЖА!', FLOORS[currentFloorIdx].name, RAW_ASSETS['meowmere_64.png']);
+    }
+  }
+
+  if (currentRoom.type === 'item' && !currentRoom.itemSpawned) {
+    currentRoom.itemSpawned = true;
+    const p = new Pickup(CANVAS_W / 2, CANVAS_H / 2, 'pedestal_item');
+    const itemKeys = Object.keys(ITEMS_DB);
+    p.itemId = itemKeys[Math.floor(Math.random() * itemKeys.length)];
+    pickups.push(p);
+  }
+
+  if (currentRoom.type === 'planetarium' && !currentRoom.itemSpawned) {
+    currentRoom.itemSpawned = true;
+    const p = new Pickup(CANVAS_W / 2, CANVAS_H / 2, 'pedestal_item');
+    const planItems = ['jupiter', 'the_sun', 'spoon_bender'];
+    p.itemId = planItems[Math.floor(Math.random() * planItems.length)];
+    pickups.push(p);
+    showItemBanner('ПЛАНЕТАРИЙ!', 'Космический зал созвездий!', RAW_ASSETS['meowmere_64.png']);
+  }
+}
+
+// --- FLOOR ADVANCEMENT ---
+function nextFloor() {
+  if (currentFloorIdx < FLOORS.length - 1) {
+    currentFloorIdx++;
+    audio.playTrapdoor();
+
+    const floor = FLOORS[currentFloorIdx];
+    document.getElementById('floor-title-hud').innerText = floor.name;
+    document.getElementById('floor-banner-name').innerText = floor.name;
+    
+    const banner = document.getElementById('floor-banner');
+    banner.classList.add('active');
+
+    setTimeout(() => {
+      generateDungeon();
+      enterRoom();
+      banner.classList.remove('active');
+    }, 1500);
+  }
+}
+
+// --- UI & HUD RENDERING ---
+function updateHUD() {
+  if (!player) return;
+
+  const heartsDiv = document.getElementById('hearts-display');
+  heartsDiv.innerHTML = '';
+  
+  const fullHearts = Math.floor(Math.max(0, player.hp) / 2);
+  const halfHeart = (Math.max(0, player.hp) % 2) === 1;
+  for (let i = 0; i < Math.floor(player.maxHp / 2); i++) {
+    const span = document.createElement('span');
+    span.style.fontSize = '20px';
+    if (i < fullHearts) span.innerText = '❤️';
+    else if (i === fullHearts && halfHeart) span.innerText = '💔';
+    else span.innerText = '🖤';
+    heartsDiv.appendChild(span);
+  }
+  for (let i = 0; i < Math.ceil(Math.max(0, player.soulHp) / 2); i++) {
+    const span = document.createElement('span');
+    span.style.fontSize = '20px';
+    span.innerText = '💙';
+    heartsDiv.appendChild(span);
+  }
+
+  document.getElementById('coins-cnt').innerText = player.coins;
+  document.getElementById('bombs-cnt').innerText = player.bombs;
+  document.getElementById('keys-cnt').innerText = player.keys;
+
+  document.getElementById('stat-dmg').innerText = '⚔️ ' + player.getEffectiveDamage().toFixed(1);
+  document.getElementById('stat-spd').innerText = '👟 ' + player.speed.toFixed(1);
+  document.getElementById('stat-rate').innerText = '🔥 ' + player.tearRate.toFixed(1);
+
+  drawMinimap();
+}
+
+function drawMinimap() {
+  if (!miniCtx) return;
+  miniCtx.clearRect(0, 0, 100, 100);
+
+  const cellSize = 15;
+  const startX = 8;
+  const startY = 8;
+
+  for (let r = 0; r < 5; r++) {
+    for (let c = 0; c < 5; c++) {
+      const room = dungeonMap[r][c];
+      if (room && room.visited) {
+        const x = startX + c * (cellSize + 2);
+        const y = startY + r * (cellSize + 2);
+
+        if (r === currentRoomPos.y && c === currentRoomPos.x) {
+          miniCtx.fillStyle = '#ffffff';
+        } else if (room.type === 'start') {
+          miniCtx.fillStyle = '#22cc66';
+        } else if (room.type === 'item') {
+          miniCtx.fillStyle = '#ff44aa';
+        } else if (room.type === 'planetarium') {
+          miniCtx.fillStyle = '#00e5ff';
+        } else if (room.type === 'sin') {
+          miniCtx.fillStyle = '#aa00ff';
+        } else if (room.type === 'boss') {
+          miniCtx.fillStyle = '#ff2222';
+        } else if (room.type === 'devil') {
+          miniCtx.fillStyle = '#ff0033';
+        } else if (room.type === 'angel') {
+          miniCtx.fillStyle = '#ffffaa';
+        } else {
+          miniCtx.fillStyle = '#4a3055';
+        }
+
+        miniCtx.fillRect(x, y, cellSize, cellSize);
+        miniCtx.strokeStyle = '#120518';
+        miniCtx.lineWidth = 1;
+        miniCtx.strokeRect(x, y, cellSize, cellSize);
+
+        miniCtx.fillStyle = '#ffffff';
+        miniCtx.font = '10px sans-serif';
+        miniCtx.textAlign = 'center';
+        if (room.type === 'start') miniCtx.fillText('🏠', x + cellSize/2, y + 11);
+        else if (room.type === 'item') miniCtx.fillText('🎁', x + cellSize/2, y + 11);
+        else if (room.type === 'planetarium') miniCtx.fillText('🪐', x + cellSize/2, y + 11);
+        else if (room.type === 'sin') miniCtx.fillText('😈', x + cellSize/2, y + 11);
+        else if (room.type === 'boss') miniCtx.fillText('👑', x + cellSize/2, y + 11);
+        else if (room.type === 'devil') miniCtx.fillText('👿', x + cellSize/2, y + 11);
+        else if (room.type === 'angel') miniCtx.fillText('😇', x + cellSize/2, y + 11);
+      }
+    }
+  }
+}
+
+function showItemBanner(title, desc, iconSrc) {
+  const banner = document.getElementById('item-banner');
+  document.getElementById('banner-title').innerText = title;
+  document.getElementById('banner-desc').innerText = desc;
+  document.getElementById('banner-img').src = iconSrc || RAW_ASSETS['meowmere_64.png'];
+  
+  banner.classList.add('active');
+  audio.playItemFanfare();
+
+  setTimeout(() => {
+    banner.classList.remove('active');
+  }, 2800);
+}
+
+// --- MAIN GAME LOOP ---
+function gameLoop() {
+  if (gameState === 'PLAYING') {
+    update();
+    render();
+    updateHUD();
+  }
+  requestAnimationFrame(gameLoop);
+}
+
+function update() {
+  if (!player) return;
+
+  if (roomTransition) {
+    roomTransition.progress += 0.08;
+    if (roomTransition.progress >= 1) {
+      currentRoomPos.x = roomTransition.targetX;
+      currentRoomPos.y = roomTransition.targetY;
+      currentRoom = roomTransition.nextRoom;
+
+      const centerX = OFFSET_X + (ROOM_GRID_W * TILE_SIZE) / 2;
+      const centerY = OFFSET_Y + (ROOM_GRID_H * TILE_SIZE) / 2;
+      if (roomTransition.dir === 'top') player.y = OFFSET_Y + (ROOM_GRID_H - 1.5) * TILE_SIZE;
+      if (roomTransition.dir === 'bottom') player.y = OFFSET_Y + 1.5 * TILE_SIZE;
+      if (roomTransition.dir === 'left') player.x = OFFSET_X + (ROOM_GRID_W - 1.5) * TILE_SIZE;
+      if (roomTransition.dir === 'right') player.x = OFFSET_X + 1.5 * TILE_SIZE;
+
+      roomTransition = null;
+      enterRoom();
+    }
+    return;
+  }
+
+  if (roomGraceTimer > 0) roomGraceTimer--;
+
+  if (enemies.length === 0 && !currentRoom.cleared) {
+    currentRoom.cleared = true;
+    audio.playPickup();
+  }
+
+  player.update();
+
+  for (let i = projectiles.length - 1; i >= 0; i--) {
+    const p = projectiles[i];
+    p.update();
+
+    enemies.forEach(e => {
+      if (Math.hypot(e.x - p.x, e.y - p.y) < e.radius + p.radius) {
+        e.takeDamage(p.damage);
+        p.life = 0;
+      }
+    });
+
+    if (p.life <= 0) projectiles.splice(i, 1);
+  }
+
+  for (let i = enemyProjectiles.length - 1; i >= 0; i--) {
+    const ep = enemyProjectiles[i];
+    ep.update();
+
+    if (Math.hypot(player.x - ep.x, player.y - ep.y) < player.radius + ep.radius) {
+      player.takeDamage(1);
+      ep.life = 0;
+    }
+
+    if (ep.life <= 0) enemyProjectiles.splice(i, 1);
+  }
+
+  for (let i = enemies.length - 1; i >= 0; i--) {
+    const e = enemies[i];
+    e.update();
+    if (e.hp <= 0) enemies.splice(i, 1);
+  }
+
+  for (let i = roomObjects.length - 1; i >= 0; i--) {
+    const obj = roomObjects[i];
+    obj.update();
+    if (obj.timer <= 0) roomObjects.splice(i, 1);
+  }
+
+  for (let i = pickups.length - 1; i >= 0; i--) {
+    const pk = pickups[i];
+    if (pk.update()) {
+      pickups.splice(i, 1);
+    }
+  }
+
+  for (let i = particles.length - 1; i >= 0; i--) {
+    particles[i].update();
+    if (particles[i].life <= 0) particles.splice(i, 1);
+  }
+
+  for (let i = floatingTexts.length - 1; i >= 0; i--) {
+    floatingTexts[i].update();
+    if (floatingTexts[i].life <= 0) floatingTexts.splice(i, 1);
+  }
+}
+
+function render() {
+  ctx.clearRect(0, 0, CANVAS_W, CANVAS_H);
+
+  ctx.save();
+
+  if (roomTransition) {
+    const p = roomTransition.progress;
+    let shiftX = 0, shiftY = 0;
+    if (roomTransition.dir === 'left') shiftX = p * CANVAS_W;
+    if (roomTransition.dir === 'right') shiftX = -p * CANVAS_W;
+    if (roomTransition.dir === 'top') shiftY = p * CANVAS_H;
+    if (roomTransition.dir === 'bottom') shiftY = -p * CANVAS_H;
+    ctx.translate(shiftX, shiftY);
+  }
+
+  const floor = FLOORS[currentFloorIdx];
+
+  ctx.fillStyle = currentRoom.type === 'devil' ? '#180308' : (currentRoom.type === 'angel' ? '#252233' : (currentRoom.type === 'planetarium' ? '#09152b' : (floor.wallColor || '#1c1322')));
+  ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+
+  ctx.fillStyle = currentRoom.type === 'devil' ? '#3d0812' : (currentRoom.type === 'angel' ? '#4a4266' : (currentRoom.type === 'planetarium' ? '#12254a' : (floor.bgTile || '#2d1e36')));
+  ctx.fillRect(OFFSET_X, OFFSET_Y, ROOM_GRID_W * TILE_SIZE, ROOM_GRID_H * TILE_SIZE);
+
+  ctx.strokeStyle = '#3d2846';
+  ctx.lineWidth = 1;
+  for (let r = 0; r <= ROOM_GRID_H; r++) {
+    ctx.beginPath();
+    ctx.moveTo(OFFSET_X, OFFSET_Y + r * TILE_SIZE);
+    ctx.lineTo(OFFSET_X + ROOM_GRID_W * TILE_SIZE, OFFSET_Y + r * TILE_SIZE);
+    ctx.stroke();
+  }
+  for (let c = 0; c <= ROOM_GRID_W; c++) {
+    ctx.beginPath();
+    ctx.moveTo(OFFSET_X + c * TILE_SIZE, OFFSET_Y);
+    ctx.lineTo(OFFSET_X + c * TILE_SIZE, OFFSET_Y + ROOM_GRID_H * TILE_SIZE);
+    ctx.stroke();
+  }
+
+  // Draw Fiery GIF Shrine in Devil Room!
+  if (currentRoom.type === 'devil' && IMAGES['gif_devil.gif']) {
+    ctx.drawImage(IMAGES['gif_devil.gif'], CANVAS_W / 2 - 75, OFFSET_Y + 15, 150, 100);
+  }
+
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+  ctx.fillRect(CANVAS_W / 2 - 140, OFFSET_Y + 10, 280, 22);
+  ctx.fillStyle = '#ff77d6';
+  ctx.font = 'bold 12px monospace';
+  ctx.textAlign = 'center';
+  let roomLabel = '⚔️ КОМНАТА БОЯ';
+  if (currentRoom.type === 'start') roomLabel = '🏠 СТАРТОВАЯ КОМНАТА (БЕЗОПАСНО)';
+  else if (currentRoom.type === 'item') roomLabel = '🎁 КОМНАТА СОКРОВИЩ';
+  else if (currentRoom.type === 'planetarium') roomLabel = '🪐 ПЛАНЕТАРИЙ';
+  else if (currentRoom.type === 'sin') roomLabel = '😈 КОМНАТА СМЕРТНОГО ГРЕХА';
+  else if (currentRoom.type === 'boss') roomLabel = '👑 КОМНАТА БОССА';
+  else if (currentRoom.type === 'devil') roomLabel = '👿 СДЕЛКА С ДЬЯВОЛОМ';
+  else if (currentRoom.type === 'angel') roomLabel = '😇 АНГЕЛЬСКАЯ КОМНАТА';
+  ctx.fillText(roomLabel, CANVAS_W / 2, OFFSET_Y + 26);
+
+  ctx.fillStyle = '#0a050e';
+  ctx.fillRect(OFFSET_X - 24, OFFSET_Y - 24, ROOM_GRID_W * TILE_SIZE + 48, 24);
+  ctx.fillRect(OFFSET_X - 24, OFFSET_Y + ROOM_GRID_H * TILE_SIZE, ROOM_GRID_W * TILE_SIZE + 48, 24);
+  ctx.fillRect(OFFSET_X - 24, OFFSET_Y, 24, ROOM_GRID_H * TILE_SIZE);
+  ctx.fillRect(OFFSET_X + ROOM_GRID_W * TILE_SIZE, OFFSET_Y, 24, ROOM_GRID_H * TILE_SIZE);
+
+  const centerX = OFFSET_X + (ROOM_GRID_W * TILE_SIZE) / 2;
+  const centerY = OFFSET_Y + (ROOM_GRID_H * TILE_SIZE) / 2;
+  const doorColor = currentRoom.cleared ? '#77ff77' : '#ff3355';
+
+  if (currentRoom.doors.top) {
+    ctx.fillStyle = doorColor;
+    ctx.fillRect(centerX - 30, OFFSET_Y - 20, 60, 20);
+  }
+  if (currentRoom.doors.bottom) {
+    ctx.fillStyle = doorColor;
+    ctx.fillRect(centerX - 30, OFFSET_Y + ROOM_GRID_H * TILE_SIZE, 60, 20);
+  }
+  if (currentRoom.doors.left) {
+    ctx.fillStyle = doorColor;
+    ctx.fillRect(OFFSET_X - 20, centerY - 30, 20, 60);
+  }
+  if (currentRoom.doors.right) {
+    ctx.fillStyle = doorColor;
+    ctx.fillRect(OFFSET_X + ROOM_GRID_W * TILE_SIZE, centerY - 30, 20, 60);
+  }
+
+  for (let r = 0; r < ROOM_GRID_H; r++) {
+    for (let c = 0; c < ROOM_GRID_W; c++) {
+      const val = currentRoom.tiles[r][c];
+      if (val > 0) {
+        const tx = OFFSET_X + c * TILE_SIZE + TILE_SIZE / 2;
+        const ty = OFFSET_Y + r * TILE_SIZE + TILE_SIZE / 2;
+        if (val === 1) {
+          ctx.fillStyle = '#5a4262';
+          ctx.fillRect(tx - 18, ty - 18, 36, 36);
+        } else if (val === 2) {
+          ctx.fillStyle = '#6a5282';
+          ctx.fillRect(tx - 18, ty - 18, 36, 36);
+          ctx.fillStyle = '#ff77d6';
+          ctx.fillRect(tx - 4, ty - 4, 8, 8);
+        }
+      }
+    }
+  }
+
+  pickups.forEach(p => p.draw(ctx));
+  roomObjects.forEach(obj => obj.draw(ctx));
+  enemies.forEach(e => e.draw(ctx));
+  if (player) player.draw(ctx);
+  projectiles.forEach(p => p.draw(ctx));
+  enemyProjectiles.forEach(ep => ep.draw(ctx));
+  particles.forEach(pt => pt.draw(ctx));
+  floatingTexts.forEach(ft => ft.draw(ctx));
+
+  ctx.restore();
+}
+
+// --- GAME FLOW CONTROL ---
+function returnToMenu() {
+  gameState = 'MENU';
+  document.getElementById('menu-screen').style.display = 'flex';
+  document.getElementById('gameover-screen').style.display = 'none';
+  document.getElementById('victory-screen').style.display = 'none';
+  document.getElementById('pause-screen').style.display = 'none';
+}
+
+function startGame() {
+  currentFloorIdx = 0;
+  const charData = CHARACTERS[selectedCharIdx];
+  player = new Player(charData);
+  
+  const floor = FLOORS[currentFloorIdx];
+  document.getElementById('floor-title-hud').innerText = floor.name;
+
+  generateDungeon();
+  enterRoom();
+
+  document.getElementById('menu-screen').style.display = 'none';
+  document.getElementById('gameover-screen').style.display = 'none';
+  document.getElementById('victory-screen').style.display = 'none';
+  document.getElementById('pause-screen').style.display = 'none';
+  
+  gameState = 'PLAYING';
+  audio.init();
+  audio.startBGM();
+
+  if (charData.item === 'meowmere') {
+    showItemBanner('МЯУМУР (MEOWMERE)', 'Радужный артефакт активирован!', RAW_ASSETS['meowmere_64.png']);
+  }
+}
+
+function triggerGameOver(reason) {
+  gameState = 'GAMEOVER';
+  document.getElementById('death-reason').innerText = reason;
+  document.getElementById('game-stats-summary').innerText = 'Пройдено этажей: ' + (currentFloorIdx + 1) + '/9 | Монет: ' + player.coins;
+  document.getElementById('gameover-screen').style.display = 'flex';
+}
+
+function triggerVictory() {
+  gameState = 'VICTORY';
+  document.getElementById('victory-stats-summary').innerText = 'ВСЕ 9 ЭТАЖЕЙ ПРОЙДЕНЫ! МЕГА САТАНА ПОВЕРЖЕН! Собрано монет: ' + player.coins;
+  document.getElementById('victory-screen').style.display = 'flex';
+}
+
+// --- EVENT LISTENERS & SETUP FOR MOBILE & DESKTOP ---
+window.onload = () => {
+  canvas = document.getElementById('gameCanvas');
+  ctx = canvas.getContext('2d');
+  
+  const miniCanvas = document.getElementById('minimap-canvas');
+  miniCtx = miniCanvas.getContext('2d');
+
+  const charGrid = document.getElementById('char-select-grid');
+  CHARACTERS.forEach((char, idx) => {
+    const card = document.createElement('div');
+    card.className = 'char-card' + (idx === selectedCharIdx ? ' selected' : '');
+    card.onclick = () => {
+      document.querySelectorAll('.char-card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      selectedCharIdx = idx;
+    };
+
+    let imgStyle = 'object-fit: contain;';
+    if (!char.isSinImg) {
+      imgStyle = 'object-fit: none; object-position: 0 0;';
+    }
+
+    card.innerHTML = `
+      <img src="${RAW_ASSETS[char.sheet]}" style="${imgStyle}" alt="${char.name}">
+      <div class="char-name">${char.name}</div>
+      <div class="char-desc">${char.desc}</div>
+    `;
+    charGrid.appendChild(card);
+  });
+
+  document.getElementById('btn-start-game').onclick = startGame;
+  document.getElementById('btn-restart').onclick = startGame;
+  document.getElementById('btn-victory-restart').onclick = startGame;
+
+  document.getElementById('btn-menu').onclick = returnToMenu;
+  document.getElementById('btn-pause-menu').onclick = returnToMenu;
+  document.getElementById('btn-gameover-menu').onclick = returnToMenu;
+  document.getElementById('btn-victory-menu').onclick = returnToMenu;
+
+  document.getElementById('btn-resume').onclick = () => {
+    gameState = 'PLAYING';
+    document.getElementById('pause-screen').style.display = 'none';
+  };
+
+  document.getElementById('btn-audio').onclick = () => {
+    audio.muted = !audio.muted;
+    document.getElementById('btn-audio').innerText = audio.muted ? '🔇 Музыка: ВЫКЛ' : '🎵 Музыка: ВКЛ';
+  };
+
+  // TOUCH CONTROLS BINDINGS FOR MOBILE
+  function bindTouch(elementId, keyCode) {
+    const el = document.getElementById(elementId);
+    if (!el) return;
+    const press = (e) => { e.preventDefault(); keysHeld[keyCode] = true; };
+    const release = (e) => { e.preventDefault(); keysHeld[keyCode] = false; };
+    el.addEventListener('touchstart', press);
+    el.addEventListener('touchend', release);
+    el.addEventListener('mousedown', press);
+    el.addEventListener('mouseup', release);
+  }
+
+  bindTouch('tb-w', 'KeyW');
+  bindTouch('tb-a', 'KeyA');
+  bindTouch('tb-s', 'KeyS');
+  bindTouch('tb-d', 'KeyD');
+  bindTouch('tb-e', 'KeyE');
+  bindTouch('tb-bomb', 'ShiftLeft');
+  bindTouch('tb-up', 'ArrowUp');
+  bindTouch('tb-left', 'ArrowLeft');
+  bindTouch('tb-down', 'ArrowDown');
+  bindTouch('tb-right', 'ArrowRight');
+
+  window.addEventListener('keydown', (e) => {
+    keysHeld[e.code] = true;
+    if (e.code === 'KeyP') {
+      if (gameState === 'PLAYING') {
+        gameState = 'PAUSED';
+        document.getElementById('pause-screen').style.display = 'flex';
+      } else if (gameState === 'PAUSED') {
+        gameState = 'PLAYING';
+        document.getElementById('pause-screen').style.display = 'none';
+      }
+    }
+  });
+
+  window.addEventListener('keyup', (e) => {
+    keysHeld[e.code] = false;
+  });
+
+  canvas.addEventListener('mousemove', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    mousePos.x = (e.clientX - rect.left) * (CANVAS_W / rect.width);
+    mousePos.y = (e.clientY - rect.top) * (CANVAS_H / rect.height);
+  });
+
+  canvas.addEventListener('mousedown', () => { mousePos.down = true; });
+  canvas.addEventListener('mouseup', () => { mousePos.down = false; });
+
+  loadAssets(() => {
+    requestAnimationFrame(gameLoop);
+  });
+};
+</script>
+</body>
+</html>
