@@ -2045,7 +2045,13 @@ class Player {
     const nearDevilAngel = roomObjects.some(obj => obj instanceof SpecialDoor && obj.playerNear);
     const nearReturnDoor = roomObjects.some(obj => obj instanceof ReturnDoor && obj.playerNear);
     const nearChest = roomObjects.some(obj => obj instanceof Chest && obj.playerNear);
-    if ((keysHeld['ShiftLeft'] || keysHeld['ShiftRight'] || (keysHeld['KeyE'] && !nearTrapdoor && !nearDevilAngel && !nearReturnDoor && !nearChest)) && this.bombs > 0) {
+    const nearBeggar = roomObjects.some(obj => obj instanceof Beggar && obj.playerNear);
+    const nearBloodMachine = roomObjects.some(obj => obj instanceof BloodMachine && obj.playerNear);
+    const nearPickup = pickups.some(pk => pk.playerNear);
+
+    const nearAnyInteractive = nearTrapdoor || nearDevilAngel || nearReturnDoor || nearChest || nearBeggar || nearBloodMachine || nearPickup;
+
+    if ((keysHeld['ShiftLeft'] || keysHeld['ShiftRight'] || (keysHeld['KeyE'] && !nearAnyInteractive)) && this.bombs > 0) {
       if (!this.bombCooldown) {
         this.placeBomb();
         this.bombCooldown = 30;
@@ -2061,6 +2067,17 @@ class Player {
     }
 
     this.checkDoorTransitions();
+  }
+
+  placeBomb() {
+    if (this.bombs <= 0) return;
+    this.bombs--;
+    if (typeof roomObjects !== 'undefined') {
+      roomObjects.push(new Bomb(this.x, this.y));
+    }
+    if (audio && typeof audio.playPickup === 'function') {
+      audio.playPickup();
+    }
   }
 
   fireTear(dirX, dirY) {
@@ -2324,8 +2341,15 @@ class Player {
       return;
     }
 
-    // 8. STARLIGHT + TERRA BLADE
-    if (this.hasStarlight && this.hasTerraBlade) {
+    // 8. STARLIGHT SYNERGIES
+    if (this.hasStarlight && (this.hasHorns || this.hasMiniBrimstone)) {
+      audio.playHit();
+      projectiles.push(new Projectile(
+        this.x, this.y, dirX, dirY,
+        effDmg * 2.2, 'starlight_brimstone', this.tearScale * 1.5, false, this.homingTears
+      ));
+      return;
+    } else if (this.hasStarlight && this.hasTerraBlade) {
       audio.playHit();
       projectiles.push(new Projectile(
         this.x, this.y, dirX * 15, dirY * 15,
@@ -2364,6 +2388,13 @@ class Player {
       projectiles.push(new Projectile(
         this.x, this.y, dirX * 14.0, dirY * 14.0,
         effDmg * 1.6, 'starlight', this.tearScale * 1.2, false, this.homingTears
+      ));
+      return;
+    } else if (this.hasStarlight && (this.hasHorns || this.hasMiniBrimstone)) {
+      audio.playHit();
+      projectiles.push(new Projectile(
+        this.x, this.y, dirX, dirY,
+        effDmg * 2.2, 'starlight_brimstone', this.tearScale * 1.5, false, this.homingTears
       ));
       return;
     } else if (this.hasMeowmere && (this.hasHorns || this.hasMiniBrimstone)) {
@@ -3127,7 +3158,7 @@ class Projectile {
       return;
     }
 
-    if (this.type === 'mini_brimstone' || this.type === 'brimstone_beam' || this.type === 'meowmere_brimstone' || this.type === 'tech_laser' || this.type === 'meow_tech_laser') {
+    if (this.type === 'mini_brimstone' || this.type === 'brimstone_beam' || this.type === 'meowmere_brimstone' || this.type === 'starlight_brimstone' || this.type === 'tech_laser' || this.type === 'meow_tech_laser') {
       this.life--;
 
       if (this.homing && enemies.length > 0) {
@@ -3170,9 +3201,11 @@ class Projectile {
         }
       });
 
-      if (Math.random() < 0.5) {
+      if (Math.random() < 0.6) {
         const randSeg = this.segments[Math.floor(Math.random() * this.segments.length)];
-        particles.push(new Particle(randSeg.x, randSeg.y, '#ff0033', 3));
+        const colors = ['#00e5ff', '#ff77d6', '#ffff55', '#ff0033'];
+        const col = (this.type === 'starlight_brimstone') ? colors[Math.floor(Math.random() * colors.length)] : '#ff0033';
+        particles.push(new Particle(randSeg.x, randSeg.y, col, 3));
       }
       return;
     }
@@ -3596,6 +3629,60 @@ class Projectile {
           ctx.restore();
         }
       }
+    } else if (this.type === 'starlight_brimstone') {
+      const progress = 1 - (this.life / this.maxLife);
+      let scaleMult = 1.0;
+      let alpha = 1.0;
+
+      if (progress < 0.2) scaleMult = progress / 0.2;
+      else if (progress > 0.65) {
+        const fade = (1 - progress) / 0.35;
+        scaleMult = Math.max(0.1, fade);
+        alpha = Math.max(0, fade);
+      }
+
+      ctx.save();
+      ctx.globalAlpha = alpha;
+
+      const rainbowHue = (Date.now() / 3) % 360;
+      const mainColor = "hsl(" + rainbowHue + ", 100%, 65%)";
+      const baseWidth = 26 * this.scale * scaleMult;
+
+      ctx.strokeStyle = mainColor;
+      ctx.lineWidth = baseWidth;
+      ctx.shadowColor = mainColor;
+      ctx.shadowBlur = 26;
+      ctx.beginPath();
+      ctx.moveTo(this.segments[0].x, this.segments[0].y);
+      for (let i = 1; i < this.segments.length; i++) {
+        ctx.lineTo(this.segments[i].x, this.segments[i].y);
+      }
+      ctx.stroke();
+
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = baseWidth * 0.45;
+      ctx.shadowColor = '#ffffff';
+      ctx.shadowBlur = 12;
+      ctx.beginPath();
+      ctx.moveTo(this.segments[0].x, this.segments[0].y);
+      for (let i = 1; i < this.segments.length; i++) {
+        ctx.lineTo(this.segments[i].x, this.segments[i].y);
+      }
+      ctx.stroke();
+
+      const starStep = Math.max(1, Math.floor(this.segments.length / 4));
+      for (let i = starStep; i < this.segments.length; i += starStep) {
+        const seg = this.segments[i];
+        if (IMAGES['starlight_64.png']) {
+          ctx.save();
+          ctx.translate(seg.x, seg.y);
+          ctx.rotate((Date.now() * 0.01 + i) % (Math.PI * 2));
+          const sz = 24 * this.scale * scaleMult;
+          ctx.drawImage(IMAGES['starlight_64.png'], -sz / 2, -sz / 2, sz, sz);
+          ctx.restore();
+        }
+      }
+      ctx.restore();
     } else if (this.type === 'mini_brimstone' || this.type === 'brimstone_beam' || this.type === 'meowmere_brimstone' || this.type === 'tech_laser' || this.type === 'meow_tech_laser') {
       const progress = 1 - (this.life / this.maxLife);
       let scaleMult = 1.0;
@@ -6372,5 +6459,5 @@ window.onload = () => {
   });
 };
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a25ec39ca9ef027a',t:'MTc4NTg1OTExMg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a25ed04b6cfc027a',t:'MTc4NTg1OTYzMQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
