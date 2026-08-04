@@ -4959,16 +4959,22 @@ class Pickup {
       } else if (this.cost > 0) {
         if (keysHeld['KeyE'] || keysHeld['KeyF'] || keysHeld['Space'] || keysHeld['KeyE_mobile']) {
           const totalHp = player.hp + player.soulHp;
-          const requiredHp = this.cost * 2;
 
-          if (totalHp >= requiredHp) {
+          if (totalHp > 0) {
+            const requiredHp = this.cost * 2;
             let needed = requiredHp;
-            if (player.hp >= needed) {
-              player.hp -= needed;
-            } else {
-              needed -= player.hp;
-              player.hp = 0;
-              player.soulHp -= needed;
+
+            if (player.hp > 0) {
+              if (player.hp >= needed) {
+                player.hp -= needed;
+                needed = 0;
+              } else {
+                needed -= player.hp;
+                player.hp = 0;
+              }
+            }
+            if (needed > 0 && player.soulHp > 0) {
+              player.soulHp = Math.max(0, player.soulHp - needed);
             }
 
             const item = ITEMS_DB[this.itemId];
@@ -4977,16 +4983,17 @@ class Pickup {
               const icon = (item.icon && RAW_ASSETS[item.icon]) ? RAW_ASSETS[item.icon] : RAW_ASSETS['meowmere_64.png'];
               showItemBanner(item.name, item.desc, icon);
             }
-            keysHeld['KeyE'] = false; keysHeld['KeyF'] = false; keysHeld['Space'] = false;
+            keysHeld['KeyE'] = false; keysHeld['KeyF'] = false; keysHeld['Space'] = false; keysHeld['KeyE_mobile'] = false;
 
             if (player.hp <= 0 && player.soulHp <= 0) {
               triggerGameOver('Вы отдали последнюю каплю жизни за сделку с дьяволом!');
             }
 
+            audio.playPickup();
             return true;
           } else {
-            floatingTexts.push(new FloatingText(this.x, this.y - 20, 'НЕДОСТАТОЧНО СЕРДЕЦ!', '#ff2222'));
-            keysHeld['KeyE'] = false; keysHeld['KeyF'] = false; keysHeld['Space'] = false;
+            floatingTexts.push(new FloatingText(this.x, this.y - 20, 'НЕТ СЕРДЕЦ ДЛЯ СДЕЛКИ!', '#ff2222'));
+            keysHeld['KeyE'] = false; keysHeld['KeyF'] = false; keysHeld['Space'] = false; keysHeld['KeyE_mobile'] = false;
           }
         }
       } else {
@@ -6365,5 +6372,5 @@ window.onload = () => {
   });
 };
 </script>
-</body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a25ec39ca9ef027a',t:'MTc4NTg1OTExMg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
