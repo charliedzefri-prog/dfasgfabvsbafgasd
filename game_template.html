@@ -1512,6 +1512,63 @@ const ITEMS_DB = {
       p.hasMoneyPower = true;
     }
   },
+  vampire_knives: {
+    id: 'vampire_knives',
+    name: 'НОЖИ ВАМПИРА (VAMPIRE KNIVES)',
+    desc: 'Веер из 5 багровых кинжалов! Похищение HP при попадании по врагам!',
+    icon: 'vampire_knives_64.png',
+    cost: 0,
+    apply: (p) => {
+      p.hasVampireKnives = true;
+      p.damage += 2.5;
+    }
+  },
+  solar_flare: {
+    id: 'solar_flare',
+    name: 'СОЛНЕЧНЫЙ ВСПЛЕСК (SOLAR ERUPTION)',
+    desc: 'Солнечный пылающий хлыст! Прожигает врагов и оставляет огненный след!',
+    icon: 'solar_flare_64.png',
+    cost: 0,
+    apply: (p) => {
+      p.hasSolarFlare = true;
+      p.damage += 4.0;
+    }
+  },
+  starlight: {
+    id: 'starlight',
+    name: 'ЗВЁЗДНЫЙ ЛУЧ (STARLIGHT)',
+    desc: 'Сверхскоростной призматический клинок! Скорострельность +2.0, Радужный луч!',
+    icon: 'starlight_64.png',
+    cost: 0,
+    apply: (p) => {
+      p.hasStarlight = true;
+      p.damage += 3.0;
+      p.tearRate += 2.0;
+      p.tearSpeed += 3.0;
+    }
+  },
+  star_wrath: {
+    id: 'star_wrath',
+    name: 'ЗВЁЗДНАЯ ЯРОСТЬ (STAR WRATH)',
+    desc: 'Призывает падающие звёзды прямо с неба на головы врагов!',
+    icon: 'star_wrath_64.png',
+    cost: 0,
+    apply: (p) => {
+      p.hasStarWrath = true;
+      p.damage += 3.5;
+    }
+  },
+  brimstone_full: {
+    id: 'brimstone_full',
+    name: 'СЕРНЫЙ ЛУЧ (BRIMSTONE)',
+    desc: 'Огромный кроваво-красный лазер Бримстоуна на весь экран! Прожигает всё!',
+    icon: 'brimstone_64.png',
+    cost: 2,
+    apply: (p) => {
+      p.hasHorns = true;
+      p.damage += 4.0;
+    }
+  },
   spoon_bender: {
     id: 'spoon_bender',
     name: 'ЛОЖКА-ИЗГИБАТЕЛЬ',
@@ -1851,6 +1908,15 @@ class Player {
             }
             audio.playMeow();
           }
+          if (this.hasVampireKnives) {
+            for (let i = -2; i <= 2; i++) {
+              const a = attackAngle + i * 0.18;
+              projectiles.push(new Projectile(
+                this.x, this.y, Math.cos(a) * 9, Math.sin(a) * 9,
+                effDmg * 1.6, 'vampire_chara_knife', this.tearScale * 1.3, false, this.homingTears
+              ));
+            }
+          }
           if (this.hasTerraBlade) {
             for (let i = -1; i <= 1; i += 2) {
               const a = attackAngle + i * 0.20;
@@ -1987,6 +2053,13 @@ class Player {
     }
     if (this.bombCooldown > 0) this.bombCooldown--;
 
+
+
+    if (this.hasStarWrath && shootDir !== null && this.shootTimer <= 0 && enemies.length > 0) {
+      const targetE = enemies[Math.floor(Math.random() * enemies.length)];
+      projectiles.push(new Projectile(targetE.x + (Math.random() - 0.5) * 40, targetE.y - 200, 0, 12, this.getEffectiveDamage() * 1.8, 'falling_star', this.tearScale * 1.3, false, false));
+    }
+
     this.checkDoorTransitions();
   }
 
@@ -1998,7 +2071,7 @@ class Player {
     const effDmg = this.getEffectiveDamage() * chocDmgMult;
     const effScale = this.tearScale * chocScaleMult;
 
-    // IPECAC ALL SYNERGIES!
+    // 1. IPECAC ALL SYNERGIES!
     if (this.hasIpecac) {
       audio.playExplosion();
 
@@ -2019,6 +2092,10 @@ class Player {
           effDmg * 2.2, 'ipecac_meowmere', this.tearScale * 1.5, true, true
         ));
       } else if (this.hasTerraBlade && this.hasMeowmere) {
+        projectiles.push(new Projectile(
+          this.x, this.y, dirX * 5.5, dirY * 5.5,
+          effDmg * 2.5, 'ipecac_zenith_core', this.tearScale * 1.6, true, true
+        ));
         for (let i = -1; i <= 1; i += 2) {
           const a = Math.atan2(dirY, dirX) + i * 0.18;
           projectiles.push(new Projectile(
@@ -2032,13 +2109,13 @@ class Player {
         ));
       } else if (this.hasTerraBlade) {
         projectiles.push(new Projectile(
-          this.x, this.y, dirX * 4.5, dirY * 4.5,
-          effDmg * 1.6, 'ipecac_terra_blade', this.tearScale * 1.5, true, true
+          this.x, this.y, dirX * 5.0, dirY * 5.0,
+          effDmg * 1.8, 'ipecac_terra_blade', this.tearScale * 1.5, true, true
         ));
       } else if (this.hasKnife) {
         projectiles.push(new Projectile(
-          this.x, this.y, dirX * 6, dirY * 6,
-          effDmg * 1.8, 'ipecac_knife', this.tearScale * 1.5, false, true
+          this.x, this.y, dirX * 6.0, dirY * 6.0,
+          effDmg * 2.0, 'ipecac_knife', this.tearScale * 1.5, false, true
         ));
       } else if (this.hasTechX) {
         projectiles.push(new Projectile(
@@ -2052,8 +2129,8 @@ class Player {
         ));
       } else if (this.hasMeowmere) {
         projectiles.push(new Projectile(
-          this.x, this.y, dirX * 4.5, dirY * 4.5,
-          effDmg * 1.6, 'ipecac_meowmere', this.tearScale * 1.4, true, true
+          this.x, this.y, dirX * 5.0, dirY * 5.0,
+          effDmg * 1.8, 'ipecac_meowmere', this.tearScale * 1.5, true, true
         ));
       } else {
         projectiles.push(new Projectile(
@@ -2064,13 +2141,78 @@ class Player {
       return;
     }
 
-    // 2. TERRA BLADE + MEOWMERE + CHARA'S KNIFE (TRIPLE GOD ZENITH!)
+    // 2. TECH X SYNERGIES
+    if (this.hasTechX) {
+      if (this.hasSolarFlare && (this.hasTerraBlade || this.hasMeowmere)) {
+        audio.playMeow(); audio.playHit();
+        projectiles.push(new Projectile(
+          this.x, this.y, dirX * 6.0, dirY * 6.0,
+          effDmg * 2.5, 'solar_zenith_tech_x', this.tearScale * 1.6, false, this.homingTears
+        ));
+        return;
+      } else if (this.hasSolarFlare) {
+        audio.playHit();
+        projectiles.push(new Projectile(
+          this.x, this.y, dirX * 6.0, dirY * 6.0,
+          effDmg * 1.8, 'solar_tech_x', this.tearScale * 1.5, false, this.homingTears
+        ));
+        return;
+      } else if (this.hasTerraBlade && this.hasMeowmere) {
+        audio.playMeow(); audio.playHit();
+        projectiles.push(new Projectile(
+          this.x, this.y, dirX * 6.0, dirY * 6.0,
+          effDmg * 2.2, 'zenith_tech_x', this.tearScale * 1.5, false, this.homingTears
+        ));
+        return;
+      } else if (this.hasVampireKnives) {
+        audio.playHit();
+        projectiles.push(new Projectile(
+          this.x, this.y, dirX * 6.0, dirY * 6.0,
+          effDmg * 1.8, 'vampire_tech_x', this.tearScale * 1.4, false, this.homingTears
+        ));
+        return;
+      } else if (this.hasStarlight) {
+        audio.playHit();
+        projectiles.push(new Projectile(
+          this.x, this.y, dirX * 6.0, dirY * 6.0,
+          effDmg * 1.8, 'starlight_tech_x', this.tearScale * 1.4, false, this.homingTears
+        ));
+        return;
+      } else if (this.hasTerraBlade) {
+        audio.playHit();
+        projectiles.push(new Projectile(
+          this.x, this.y, dirX * 6.0, dirY * 6.0,
+          effDmg * 1.7, 'terra_tech_x', this.tearScale * 1.4, false, this.homingTears
+        ));
+        return;
+      } else if (this.hasMeowmere) {
+        audio.playMeow();
+        projectiles.push(new Projectile(
+          this.x, this.y, dirX * 6.0, dirY * 6.0,
+          effDmg * 1.6, 'meow_tech_x', this.tearScale * 1.4, false, this.homingTears
+        ));
+        return;
+      } else if (this.hasHorns || this.hasMiniBrimstone) {
+        audio.playHit();
+        projectiles.push(new Projectile(
+          this.x, this.y, dirX * 6.0, dirY * 6.0,
+          effDmg * 1.6, 'brim_tech_x', this.tearScale * 1.4, false, this.homingTears
+        ));
+        return;
+      } else {
+        audio.playHit();
+        projectiles.push(new Projectile(
+          this.x, this.y, dirX * 5.5, dirY * 5.5,
+          effDmg * 1.3, 'tech_x', this.tearScale * 1.2, false, this.homingTears
+        ));
+        return;
+      }
+    }
+
+    // 3. TRIPLE GOD ZENITH
     if (this.hasTerraBlade && this.hasMeowmere && this.hasKnife) {
-      audio.playMeow();
-      audio.playHit();
+      audio.playMeow(); audio.playHit();
       const baseA = Math.atan2(dirY, dirX);
-      
-      // Central Chara Cat Boomerang + Zenith Core Blade
       projectiles.push(new Projectile(
         this.x, this.y, dirX * 9, dirY * 9,
         effDmg * 2.2, 'meow_knife_proj', this.tearScale * 1.4, true, true
@@ -2079,7 +2221,6 @@ class Player {
         this.x, this.y, dirX * (this.tearSpeed + 3), dirY * (this.tearSpeed + 3),
         effDmg * 2.5, 'zenith_core', this.tearScale * 1.4, true, true
       ));
-      // 2 Terra Blade Emerald Beams
       for (let i = -1; i <= 1; i += 2) {
         const a = baseA + i * 0.22;
         projectiles.push(new Projectile(
@@ -2087,7 +2228,6 @@ class Player {
           effDmg * 1.8, 'terra_blade', this.tearScale * 1.3, true, this.homingTears
         ));
       }
-      // 3 Meowmere Bouncing Cats
       for (let i = -1; i <= 1; i++) {
         const a = baseA + i * 0.18;
         projectiles.push(new Projectile(
@@ -2098,19 +2238,14 @@ class Player {
       return;
     }
 
-    // TERRA BLADE + MEOWMERE (TERRA MEOWMERE ZENITH!)
+    // 4. TERRA BLADE + MEOWMERE
     if (this.hasTerraBlade && this.hasMeowmere) {
-      audio.playMeow();
-      audio.playHit();
+      audio.playMeow(); audio.playHit();
       const baseA = Math.atan2(dirY, dirX);
-
-      // Central Zenith Blade Core
       projectiles.push(new Projectile(
         this.x, this.y, dirX * (this.tearSpeed + 3), dirY * (this.tearSpeed + 3),
         effDmg * 2.4, 'zenith_core', this.tearScale * 1.4, true, true
       ));
-
-      // 2 Terra Blade Beams
       for (let i = -1; i <= 1; i += 2) {
         const a = baseA + i * 0.25;
         projectiles.push(new Projectile(
@@ -2118,7 +2253,6 @@ class Player {
           effDmg * 1.8, 'terra_blade', this.tearScale * 1.3, true, this.homingTears
         ));
       }
-      // 2 Meowmere Bouncing Cats
       for (let i = -1; i <= 1; i += 2) {
         const a = baseA + i * 0.14;
         projectiles.push(new Projectile(
@@ -2127,18 +2261,24 @@ class Player {
         ));
       }
       return;
-    } else if (this.hasTerraBlade) {
+    }
+
+    // 5. CHARA KNIFE + VAMPIRE KNIVES
+    if (this.hasKnife && this.hasVampireKnives) {
       audio.playHit();
-      projectiles.push(new Projectile(
-        this.x, this.y, dirX * (this.tearSpeed + 2), dirY * (this.tearSpeed + 2),
-        effDmg * 1.5, 'terra_blade', this.tearScale * 1.2, true, this.homingTears
-      ));
+      for (let i = -2; i <= 2; i++) {
+        const a = Math.atan2(dirY, dirX) + i * 0.16;
+        projectiles.push(new Projectile(
+          this.x, this.y, Math.cos(a) * 9, Math.sin(a) * 9,
+          effDmg * 1.8, 'vampire_chara_knife', this.tearScale * 1.3, false, this.homingTears
+        ));
+      }
       return;
     }
 
+    // 6. CHARA KNIFE + MEOWMERE
     if (this.hasKnife && this.hasMeowmere) {
-      audio.playMeow();
-      audio.playHit();
+      audio.playMeow(); audio.playHit();
       const baseA = Math.atan2(dirY, dirX);
       projectiles.push(new Projectile(
         this.x, this.y, dirX * 9, dirY * 9,
@@ -2154,7 +2294,6 @@ class Player {
       return;
     } else if (this.hasKnife && (this.hasHorns || this.hasMiniBrimstone)) {
       audio.playHit();
-      // Fan of 5 Chara Knives!
       for (let i = -2; i <= 2; i++) {
         const a = Math.atan2(dirY, dirX) + i * 0.22;
         projectiles.push(new Projectile(
@@ -2170,29 +2309,68 @@ class Player {
         effDmg * 1.5, 'chara_knife_proj', this.tearScale * 1.2, false, this.homingTears
       ));
       return;
+    }
+
+    // 7. SOLAR FLARE + MEOWMERE
+    if (this.hasSolarFlare && this.hasMeowmere) {
+      audio.playMeow(); audio.playHit();
+      for (let i = -1; i <= 1; i++) {
+        const a = Math.atan2(dirY, dirX) + i * 0.22;
+        projectiles.push(new Projectile(
+          this.x, this.y, Math.cos(a) * 8.0, Math.sin(a) * 8.0,
+          effDmg * 1.8, 'solar_cat', this.tearScale * 1.4, true, true
+        ));
+      }
+      return;
+    }
+
+    // 8. STARLIGHT + TERRA BLADE
+    if (this.hasStarlight && this.hasTerraBlade) {
+      audio.playHit();
+      projectiles.push(new Projectile(
+        this.x, this.y, dirX * 15, dirY * 15,
+        effDmg * 2.0, 'starlight_terra', this.tearScale * 1.3, false, this.homingTears
+      ));
+      return;
+    }
+
+    // 9. SINGLE WEAPONS
+    if (this.hasTerraBlade) {
+      audio.playHit();
+      projectiles.push(new Projectile(
+        this.x, this.y, dirX * (this.tearSpeed + 2), dirY * (this.tearSpeed + 2),
+        effDmg * 1.5, 'terra_blade', this.tearScale * 1.2, true, this.homingTears
+      ));
+      return;
+    } else if (this.hasVampireKnives) {
+      audio.playHit();
+      for (let i = -2; i <= 2; i++) {
+        const a = Math.atan2(dirY, dirX) + i * 0.16;
+        projectiles.push(new Projectile(
+          this.x, this.y, Math.cos(a) * (this.tearSpeed + 2), Math.sin(a) * (this.tearSpeed + 2),
+          effDmg * 1.4, 'vampire_knife', this.tearScale * 1.2, false, this.homingTears
+        ));
+      }
+      return;
+    } else if (this.hasSolarFlare) {
+      audio.playHit();
+      projectiles.push(new Projectile(
+        this.x, this.y, dirX * (this.tearSpeed + 3), dirY * (this.tearSpeed + 3),
+        effDmg * 1.8, 'solar_flare', this.tearScale * 1.4, false, this.homingTears
+      ));
+      return;
+    } else if (this.hasStarlight) {
+      audio.playHit();
+      projectiles.push(new Projectile(
+        this.x, this.y, dirX * 14.0, dirY * 14.0,
+        effDmg * 1.6, 'starlight', this.tearScale * 1.2, false, this.homingTears
+      ));
+      return;
     } else if (this.hasMeowmere && (this.hasHorns || this.hasMiniBrimstone)) {
       audio.playMeow();
       projectiles.push(new Projectile(
         this.x, this.y, dirX, dirY,
         effDmg * 1.5, 'meowmere_brimstone', this.tearScale * 1.4, true, true
-      ));
-    } else if (this.hasTechX && this.hasMeowmere) {
-      audio.playMeow();
-      projectiles.push(new Projectile(
-        this.x, this.y, dirX * 6, dirY * 6,
-        effDmg * 1.5, 'meow_tech_x', this.tearScale * 1.4, false, this.homingTears
-      ));
-    } else if (this.hasTechX && (this.hasHorns || this.hasMiniBrimstone)) {
-      audio.playHit();
-      projectiles.push(new Projectile(
-        this.x, this.y, dirX * 6, dirY * 6,
-        effDmg * 1.6, 'brim_tech_x', this.tearScale * 1.4, false, this.homingTears
-      ));
-    } else if (this.hasTechX) {
-      audio.playHit();
-      projectiles.push(new Projectile(
-        this.x, this.y, dirX * 5.5, dirY * 5.5,
-        effDmg * 1.3, 'tech_x', this.tearScale * 1.2, false, this.homingTears
       ));
     } else if (this.hasTechnology && this.hasMeowmere) {
       audio.playMeow();
@@ -2231,12 +2409,6 @@ class Player {
         effDmg, 'normal', this.tearScale, false, this.homingTears
       ));
     }
-  }
-
-  placeBomb() {
-    this.bombs--;
-    roomObjects.push(new Bomb(this.x, this.y));
-    audio.playHit();
   }
 
   checkDoorTransitions() {
@@ -2427,7 +2599,7 @@ class Projectile {
 
     this.isEnemyProj = (type === 'enemy_blood' || type === 'enemy_cyan' || type === 'enemy_coin');
 
-    this.life = (type === 'mini_brimstone' || type === 'brimstone_beam' || type === 'meowmere_brimstone' || type === 'tech_laser' || type === 'meow_tech_laser') ? 28 : (type === 'chara_knife_proj' ? 45 : 140);
+    this.life = (type === 'starlight') ? 10 : ((type === 'mini_brimstone' || type === 'brimstone_beam' || type === 'meowmere_brimstone' || type === 'tech_laser' || type === 'meow_tech_laser') ? 28 : (type === 'chara_knife_proj' ? 45 : 140));
     this.maxLife = this.life;
     
     this.angle = Math.atan2(vy, vx);
@@ -2462,7 +2634,7 @@ class Projectile {
   }
 
   update() {
-    if (this.type === 'ipecac_tear' || this.type === 'ipecac_meowmere' || this.type === 'ipecac_knife' || this.type === 'ipecac_terra_blade') {
+    if (this.type === 'ipecac_tear' || this.type === 'ipecac_meowmere' || this.type === 'ipecac_knife' || this.type === 'ipecac_terra_blade' || this.type === 'ipecac_zenith_core') {
       if (this.homing && enemies.length > 0) {
         let nearest = null;
         let minDist = 9999;
@@ -2480,6 +2652,7 @@ class Projectile {
             this.vx = (this.vx / newSpeed) * speed;
             this.vy = (this.vy / newSpeed) * speed;
           }
+          this.angle = Math.atan2(this.vy, this.vx);
         }
       }
 
@@ -2487,19 +2660,238 @@ class Projectile {
       this.y += this.vy;
       this.life--;
 
-      if ((this.type === 'ipecac_meowmere' || this.type === 'ipecac_terra_blade') && Math.random() < 0.4) {
+      if (Math.random() < 0.6) {
         particles.push(new Particle(this.x, this.y, '#22ff44', 4, 0.8));
       }
 
       enemies.forEach(e => {
-        if (!this.exploded && Math.hypot(e.x - this.x, e.y - this.y) < e.radius + this.radius + 8) {
+        if (!this.exploded && Math.hypot(e.x - this.x, e.y - this.y) < e.radius + this.radius + 12) {
           this.explodeIpecac();
           this.life = 0;
         }
       });
+
+      const minX = OFFSET_X + TILE_SIZE / 2;
+      const maxX = OFFSET_X + (ROOM_GRID_W - 0.5) * TILE_SIZE;
+      const minY = OFFSET_Y + TILE_SIZE / 2;
+      const maxY = OFFSET_Y + (ROOM_GRID_H - 0.5) * TILE_SIZE;
+
+      let hitWall = false;
+      if (this.x <= minX || this.x >= maxX) { this.vx = -this.vx; hitWall = true; }
+      if (this.y <= minY || this.y >= maxY) { this.vy = -this.vy; hitWall = true; }
+
+      if (hitWall) {
+        if (this.bouncing && this.bouncesLeft > 0) {
+          this.bouncesLeft--;
+          this.explodeIpecac();
+          this.angle = Math.atan2(this.vy, this.vx);
+        } else {
+          this.explodeIpecac();
+          this.life = 0;
+        }
+      }
+
       if (this.life <= 0 && !this.exploded) {
         this.explodeIpecac();
       }
+      return;
+    }
+
+
+
+    // VAMPIRE KNIFE (Heals player HP on hit)
+    if (this.type === 'vampire_knife') {
+      this.x += this.vx;
+      this.y += this.vy;
+      this.life--;
+
+      if (Math.random() < 0.5) {
+        particles.push(new Particle(this.x, this.y, '#ff0033', 3, 0.6));
+      }
+
+      enemies.forEach(e => {
+        e.laserHitCooldown = e.laserHitCooldown || 0;
+        if (e.laserHitCooldown <= 0) {
+          if (Math.hypot(e.x - this.x, e.y - this.y) < e.radius + 18 * this.scale) {
+            e.takeDamage(this.damage);
+            e.laserHitCooldown = 10;
+            audio.playPickup();
+
+            for (let i = 0; i < 6; i++) {
+              particles.push(new Particle(e.x, e.y, '#ff0033', 4, 1.0));
+            }
+          }
+        }
+      });
+      return;
+    }
+
+    // SOLAR FLARE (Flames & explosions)
+    if (this.type === 'solar_flare') {
+      this.x += this.vx;
+      this.y += this.vy;
+      this.life--;
+
+      if (Math.random() < 0.8) {
+        particles.push(new Particle(this.x, this.y, '#ff7700', 4, 0.8));
+      }
+
+      enemies.forEach(e => {
+        e.laserHitCooldown = e.laserHitCooldown || 0;
+        if (e.laserHitCooldown <= 0) {
+          if (Math.hypot(e.x - this.x, e.y - this.y) < e.radius + 24 * this.scale) {
+            e.takeDamage(this.damage);
+            e.laserHitCooldown = 10;
+            audio.playExplosion();
+            for (let i = 0; i < 8; i++) {
+              particles.push(new Particle(e.x, e.y, '#ff4400', 5, 1.2));
+            }
+          }
+        }
+      });
+      return;
+    }
+
+    // STARLIGHT (Prism beam)
+    if (this.type === 'starlight') {
+      this.x += this.vx;
+      this.y += this.vy;
+      this.life--;
+
+      if (Math.random() < 0.7) {
+        const colors = ['#33ffff', '#ff77d6', '#ffff55', '#a066ff'];
+        particles.push(new Particle(this.x, this.y, colors[Math.floor(Math.random() * colors.length)], 3, 0.6));
+      }
+
+      enemies.forEach(e => {
+        e.laserHitCooldown = e.laserHitCooldown || 0;
+        if (e.laserHitCooldown <= 0) {
+          if (Math.hypot(e.x - this.x, e.y - this.y) < e.radius + 20 * this.scale) {
+            e.takeDamage(this.damage);
+            e.laserHitCooldown = 8;
+            audio.playHit();
+          }
+        }
+      });
+      return;
+    }
+
+    // FALLING STAR (Sky Star Wrath)
+    if (this.type === 'falling_star') {
+      this.x += this.vx;
+      this.y += this.vy;
+      this.life--;
+
+      particles.push(new Particle(this.x, this.y, '#ffff33', 3, 0.6));
+
+      enemies.forEach(e => {
+        if (!this.exploded && Math.hypot(e.x - this.x, e.y - this.y) < e.radius + 24 * this.scale) {
+          this.exploded = true;
+          this.life = 0;
+          audio.playExplosion();
+          enemies.forEach(e2 => {
+            if (Math.hypot(e2.x - this.x, e2.y - this.y) < 65) {
+              e2.takeDamage(this.damage * 1.5);
+            }
+          });
+          for (let i = 0; i < 15; i++) {
+            particles.push(new Particle(this.x, this.y, '#ffff00', 5, 1.2));
+          }
+        }
+      });
+      return;
+    }
+
+    // SOLAR MEOWMERE & SOLAR CAT
+    if (this.type === 'solar_meowmere' || this.type === 'solar_cat') {
+      this.x += this.vx;
+      this.y += this.vy;
+      this.life--;
+
+      if (Math.random() < 0.7) {
+        particles.push(new Particle(this.x, this.y, '#ff7700', 4, 0.8));
+      }
+
+      enemies.forEach(e => {
+        e.laserHitCooldown = e.laserHitCooldown || 0;
+        if (e.laserHitCooldown <= 0) {
+          if (Math.hypot(e.x - this.x, e.y - this.y) < e.radius + 24 * this.scale) {
+            e.takeDamage(this.damage);
+            e.laserHitCooldown = 8;
+            audio.playExplosion();
+            audio.playMeow();
+            for (let i = 0; i < 8; i++) {
+              particles.push(new Particle(e.x, e.y, '#ff5500', 5, 1.2));
+            }
+          }
+        }
+      });
+      return;
+    }
+
+    // VAMPIRE CHARA KNIFE (Heals HP + Crimson Slash)
+    if (this.type === 'vampire_chara_knife') {
+      this.x += this.vx;
+      this.y += this.vy;
+      this.life--;
+
+      if (Math.random() < 0.6) {
+        particles.push(new Particle(this.x, this.y, '#ff0033', 3, 0.8));
+      }
+
+      enemies.forEach(e => {
+        e.laserHitCooldown = e.laserHitCooldown || 0;
+        if (e.laserHitCooldown <= 0) {
+          if (Math.hypot(e.x - this.x, e.y - this.y) < e.radius + 24 * this.scale) {
+            e.takeDamage(this.damage);
+            e.laserHitCooldown = 8;
+            audio.playPickup();
+
+            for (let i = 0; i < 8; i++) {
+              particles.push(new Particle(e.x, e.y, '#ff0033', 4, 1.2));
+            }
+          }
+        }
+      });
+      return;
+    }
+
+    // STARLIGHT TERRA (Prismatic Terra Rapier)
+    if (this.type === 'starlight_terra') {
+      this.x += this.vx;
+      this.y += this.vy;
+      this.life--;
+
+      if (Math.random() < 0.8) {
+        const colors = ['#00e5ff', '#22ff44', '#ff77d6', '#ffff55'];
+        particles.push(new Particle(this.x, this.y, colors[Math.floor(Math.random() * colors.length)], 4, 1.0));
+      }
+
+      // Every 3 frames, spawn 2 branching terra starlight beams
+      if (this.life % 3 === 0) {
+        const baseA = Math.atan2(this.vy, this.vx);
+        for (let i = -1; i <= 1; i += 2) {
+          const a = baseA + i * 0.35;
+          projectiles.push(new Projectile(
+            this.x, this.y, Math.cos(a) * 12, Math.sin(a) * 12,
+            this.damage * 0.6, 'terra_blade', this.scale * 0.9, true, true
+          ));
+        }
+      }
+
+      enemies.forEach(e => {
+        e.laserHitCooldown = e.laserHitCooldown || 0;
+        if (e.laserHitCooldown <= 0) {
+          if (Math.hypot(e.x - this.x, e.y - this.y) < e.radius + 24 * this.scale) {
+            e.takeDamage(this.damage);
+            e.laserHitCooldown = 8;
+            audio.playHit();
+            for (let i = 0; i < 6; i++) {
+              particles.push(new Particle(e.x, e.y, '#22ff44', 4, 1.2));
+            }
+          }
+        }
+      });
       return;
     }
 
@@ -2680,7 +3072,7 @@ class Projectile {
       return;
     }
 
-    if (this.type === 'tech_x' || this.type === 'meow_tech_x' || this.type === 'brim_tech_x') {
+    if (this.type.includes('tech_x')) {
       this.x += this.vx;
       this.y += this.vy;
       this.life--;
@@ -2700,6 +3092,14 @@ class Projectile {
         }
       }
 
+      if (this.type === 'ipecac_tech_x' && Math.random() < 0.6) {
+        particles.push(new Particle(this.x, this.y, '#22ff44', 4, 0.8));
+      } else if (this.type === 'terra_tech_x' && Math.random() < 0.5) {
+        particles.push(new Particle(this.x, this.y, '#22ff44', 3, 0.6));
+      } else if (this.type === 'meow_tech_x' && Math.random() < 0.5) {
+        particles.push(new Particle(this.x, this.y, '#ff77d6', 3, 0.6));
+      }
+
       enemies.forEach(e => {
         e.techHitCooldown = e.techHitCooldown || 0;
         if (e.techHitCooldown <= 0) {
@@ -2707,6 +3107,20 @@ class Projectile {
           if (dist < this.ringRadius + e.radius) {
             e.takeDamage(this.damage * 0.7);
             e.techHitCooldown = 12;
+
+            if (this.type === 'ipecac_tech_x') {
+              this.explodeIpecac();
+            } else if (this.type === 'meow_tech_x' || this.type === 'zenith_tech_x') {
+              audio.playMeow();
+              for (let i = 0; i < 4; i++) {
+                particles.push(new Particle(e.x, e.y, '#ff77d6', 4, 1.0));
+              }
+            } else if (this.type === 'terra_tech_x') {
+              audio.playHit();
+              for (let i = 0; i < 4; i++) {
+                particles.push(new Particle(e.x, e.y, '#22ff44', 4, 1.0));
+              }
+            }
           }
         }
       });
@@ -2840,7 +3254,58 @@ class Projectile {
     const rainbowHue = (Date.now() / 4) % 360;
     const rainbowColor = `hsl(${rainbowHue}, 100%, 65%)`;
 
-    if (this.type === 'ipecac_tear') {
+    if (this.type === 'vampire_knife') {
+      ctx.translate(this.x, this.y);
+      ctx.rotate(this.angle + Math.PI * 3 / 4);
+      ctx.shadowColor = '#ff0033';
+      ctx.shadowBlur = 18;
+      const sz = 28 * this.scale;
+      if (IMAGES['vampire_knives_64.png']) {
+        ctx.drawImage(IMAGES['vampire_knives_64.png'], -sz / 2, -sz / 2, sz, sz);
+      } else {
+        ctx.fillStyle = '#ff0033';
+        ctx.fillRect(-sz / 2, -sz / 2, sz, sz);
+      }
+    } else if (this.type === 'solar_flare') {
+      ctx.translate(this.x, this.y);
+      ctx.rotate(this.angle + Math.PI / 4);
+      ctx.shadowColor = '#ff7700';
+      ctx.shadowBlur = 22;
+      const sz = 36 * this.scale;
+      if (IMAGES['solar_flare_64.png']) {
+        ctx.drawImage(IMAGES['solar_flare_64.png'], -sz / 2, -sz / 2, sz, sz);
+      } else {
+        ctx.fillStyle = '#ff7700';
+        ctx.fillRect(-sz / 2, -sz / 2, sz, sz);
+      }
+    } else if (this.type === 'starlight') {
+      ctx.translate(this.x, this.y);
+      ctx.rotate(this.angle + Math.PI / 4);
+      ctx.shadowColor = '#00f0ff';
+      ctx.shadowBlur = 20;
+      const sz = 32 * this.scale;
+      if (IMAGES['starlight_64.png']) {
+        ctx.drawImage(IMAGES['starlight_64.png'], -sz / 2, -sz / 2, sz, sz);
+      } else {
+        ctx.fillStyle = '#00f0ff';
+        ctx.fillRect(-sz / 2, -sz / 2, sz, sz);
+      }
+    } else if (this.type === 'falling_star') {
+      ctx.translate(this.x, this.y);
+      ctx.rotate((Date.now() * 0.02) % (Math.PI * 2));
+      ctx.shadowColor = '#ffff00';
+      ctx.shadowBlur = 24;
+      const sz = 32 * this.scale;
+      if (IMAGES['star_wrath_64.png']) {
+        ctx.drawImage(IMAGES['star_wrath_64.png'], -sz / 2, -sz / 2, sz, sz);
+      } else {
+        ctx.fillStyle = '#ffff00';
+        ctx.beginPath();
+        ctx.arc(0, 0, 12, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+    } else if (this.type === 'ipecac_tear') {
       ctx.fillStyle = '#22ff44';
       ctx.shadowColor = '#22ff44';
       ctx.shadowBlur = 18;
@@ -2856,12 +3321,53 @@ class Projectile {
       ctx.translate(this.x, this.y);
       ctx.rotate(this.angle + Math.PI / 4);
       ctx.shadowColor = '#22ff44';
-      ctx.shadowBlur = 22;
+      ctx.shadowBlur = 24;
       if (IMAGES['terra_blade_32.png']) {
         ctx.drawImage(IMAGES['terra_blade_32.png'], -18, -18, 36 * this.scale, 36 * this.scale);
       } else {
         ctx.fillStyle = '#22ff44';
         ctx.fillRect(-15, -15, 30, 30);
+      }
+    } else if (this.type === 'ipecac_meowmere') {
+      ctx.translate(this.x, this.y);
+      ctx.rotate(this.angle + Math.PI / 4);
+      ctx.shadowColor = '#22ff44';
+      ctx.shadowBlur = 24;
+      if (IMAGES['meowmere_32.png']) {
+        ctx.drawImage(IMAGES['meowmere_32.png'], -18, -18, 36 * this.scale, 36 * this.scale);
+      } else {
+        ctx.fillStyle = '#22ff44';
+        ctx.beginPath();
+        ctx.arc(0, 0, this.radius * 1.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    } else if (this.type === 'ipecac_knife') {
+      ctx.translate(this.x, this.y);
+      ctx.rotate(this.angle + Math.PI * 3 / 4);
+      ctx.shadowColor = '#22ff44';
+      ctx.shadowBlur = 24;
+      const kSize = 34 * this.scale;
+      if (IMAGES['chara_knife_64.png']) {
+        ctx.drawImage(IMAGES['chara_knife_64.png'], -kSize / 2, -kSize / 2, kSize, kSize);
+      } else {
+        ctx.fillStyle = '#22ff44';
+        ctx.fillRect(-kSize / 2, -kSize / 2, kSize, kSize);
+      }
+    } else if (this.type === 'ipecac_zenith_core') {
+      ctx.translate(this.x, this.y);
+      ctx.rotate(this.angle + Math.PI / 4);
+      ctx.shadowColor = '#22ff44';
+      ctx.shadowBlur = 26;
+
+      const sz = 40 * this.scale;
+      if (IMAGES['terra_blade_32.png']) {
+        ctx.drawImage(IMAGES['terra_blade_32.png'], -sz / 2, -sz / 2, sz, sz);
+      }
+      if (IMAGES['meowmere_32.png']) {
+        ctx.save();
+        ctx.rotate(Math.PI / 2);
+        ctx.drawImage(IMAGES['meowmere_32.png'], -sz / 2, -sz / 2, sz, sz);
+        ctx.restore();
       }
     } else if (this.type === 'chara_knife_melee') {
       ctx.translate(this.x, this.y);
@@ -2940,7 +3446,7 @@ class Projectile {
       ctx.translate(this.x, this.y);
       ctx.rotate(this.angle + Math.PI / 4);
 
-      const spin = Date.now() * 0.01;
+      const spin = (Date.now() * 0.01) % (Math.PI * 2);
       ctx.save();
       ctx.strokeStyle = '#22ff66';
       ctx.lineWidth = 3.5 * this.scale;
@@ -2967,24 +3473,128 @@ class Projectile {
         ctx.drawImage(IMAGES['meowmere_32.png'], -sz / 2, -sz / 2, sz, sz);
         ctx.restore();
       }
-    } else if (this.type === 'tech_x' || this.type === 'meow_tech_x' || this.type === 'brim_tech_x') {
-      const ringColor = isRainbow ? rainbowColor : (this.type === 'meow_tech_x' ? '#ff77d6' : (this.type === 'brim_tech_x' ? '#ff0033' : '#00e5ff'));
+    } else if (this.type.includes('tech_x')) {
+      let ringColor = '#00e5ff';
+      if (isRainbow) ringColor = rainbowColor;
+      else if (this.type === 'meow_tech_x') ringColor = '#ff77d6';
+      else if (this.type === 'terra_tech_x') ringColor = '#22ff44';
+      else if (this.type === 'ipecac_tech_x') ringColor = '#22ff44';
+      else if (this.type === 'solar_tech_x' || this.type === 'solar_zenith_tech_x') ringColor = '#ff7700';
+      else if (this.type === 'vampire_tech_x') ringColor = '#ff0033';
+      else if (this.type === 'starlight_tech_x') ringColor = '#00f0ff';
+      else if (this.type === 'brim_tech_x') ringColor = '#ff0033';
+      else if (this.type === 'zenith_tech_x') ringColor = '#22ff66';
+
+      // Outer Tech X Ring
       ctx.strokeStyle = ringColor;
-      ctx.lineWidth = 4 * this.scale;
+      ctx.lineWidth = 4.5 * this.scale;
       ctx.shadowColor = ringColor;
-      ctx.shadowBlur = 15;
+      ctx.shadowBlur = 20;
       ctx.beginPath();
       ctx.arc(this.x, this.y, this.ringRadius, 0, Math.PI * 2);
       ctx.stroke();
 
       ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 1.5 * this.scale;
+      ctx.lineWidth = 1.8 * this.scale;
       ctx.beginPath();
       ctx.arc(this.x, this.y, this.ringRadius, 0, Math.PI * 2);
       ctx.stroke();
 
-      if (this.type === 'meow_tech_x' && IMAGES['meowmere_32.png']) {
-        ctx.drawImage(IMAGES['meowmere_32.png'], this.x - 16, this.y - 16, 32, 32);
+      // IF ZENITH TECH X: Draw dual-colored inner ring!
+      if (this.type === 'zenith_tech_x') {
+        const spinRing = (Date.now() * 0.008) % (Math.PI * 2);
+        ctx.save();
+        ctx.strokeStyle = '#ff33aa';
+        ctx.lineWidth = 2.5 * this.scale;
+        ctx.shadowColor = '#ff33aa';
+        ctx.shadowBlur = 14;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.ringRadius * 0.65, spinRing, spinRing + Math.PI);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // SPINNING SWORDS INSIDE RING CENTER (SMOOTH MODULO ROTATION)!
+      const spinAngle = (Date.now() * 0.018) % (Math.PI * 2);
+      const swSize = Math.max(28 * this.scale, Math.min(44 * this.scale, this.ringRadius * 1.15));
+
+      // Meowmere inside ring center
+      if ((this.type === 'meow_tech_x' || this.type === 'zenith_tech_x') && IMAGES['meowmere_32.png']) {
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.rotate(spinAngle);
+        ctx.shadowColor = '#ff77d6';
+        ctx.shadowBlur = 18;
+        ctx.drawImage(IMAGES['meowmere_32.png'], -swSize / 2, -swSize / 2, swSize, swSize);
+        ctx.restore();
+      }
+
+      // Terra Blade inside ring center
+      if ((this.type === 'terra_tech_x' || this.type === 'zenith_tech_x') && IMAGES['terra_blade_32.png']) {
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.rotate(spinAngle + (this.type === 'zenith_tech_x' ? Math.PI / 2 : 0));
+        ctx.shadowColor = '#22ff44';
+        ctx.shadowBlur = 18;
+        ctx.drawImage(IMAGES['terra_blade_32.png'], -swSize / 2, -swSize / 2, swSize, swSize);
+        ctx.restore();
+      }
+
+      // Solar Flare inside ring center
+      if ((this.type === 'solar_tech_x' || this.type === 'solar_zenith_tech_x') && IMAGES['solar_flare_64.png']) {
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.rotate(spinAngle);
+        ctx.shadowColor = '#ff7700';
+        ctx.shadowBlur = 20;
+        ctx.drawImage(IMAGES['solar_flare_64.png'], -swSize / 2, -swSize / 2, swSize, swSize);
+        ctx.restore();
+      }
+
+      // STARLIGHT TECH X: 6 Radial Prismatic Laser Beams!
+      if (this.type === 'starlight_tech_x') {
+        const timeMs = Date.now();
+        const rotA = (timeMs * 0.008) % (Math.PI * 2);
+        const rayLen = this.ringRadius * 1.5;
+
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.rotate(rotA);
+        for (let i = 0; i < 6; i++) {
+          const a = (i * Math.PI) / 3;
+          ctx.strokeStyle = 'hsl(' + ((timeMs / 4 + i * 60) % 360) + ', 100%, 65%)';
+          ctx.lineWidth = 3 * this.scale;
+          ctx.shadowColor = ctx.strokeStyle;
+          ctx.shadowBlur = 14;
+          ctx.beginPath();
+          ctx.moveTo(0, 0);
+          ctx.lineTo(Math.cos(a) * rayLen, Math.sin(a) * rayLen);
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+
+      // VAMPIRE TECH X: 8 Orbiting Vampire Daggers Saw Vortex!
+      if (this.type === 'vampire_tech_x') {
+        const timeMs = Date.now();
+        const orbitA = (timeMs * 0.012) % (Math.PI * 2);
+        const dagSize = 24 * this.scale;
+
+        for (let i = 0; i < 8; i++) {
+          const da = orbitA + (i * Math.PI) / 4;
+          const dx = this.x + Math.cos(da) * this.ringRadius;
+          const dy = this.y + Math.sin(da) * this.ringRadius;
+
+          ctx.save();
+          ctx.translate(dx, dy);
+          ctx.rotate(da + Math.PI / 2);
+          ctx.shadowColor = '#ff0033';
+          ctx.shadowBlur = 14;
+          if (IMAGES['vampire_knives_64.png']) {
+            ctx.drawImage(IMAGES['vampire_knives_64.png'], -dagSize / 2, -dagSize / 2, dagSize, dagSize);
+          }
+          ctx.restore();
+        }
       }
     } else if (this.type === 'mini_brimstone' || this.type === 'brimstone_beam' || this.type === 'meowmere_brimstone' || this.type === 'tech_laser' || this.type === 'meow_tech_laser') {
       const progress = 1 - (this.life / this.maxLife);
@@ -3096,6 +3706,7 @@ class Enemy {
     this.x = x;
     this.y = y;
     this.type = type;
+    this.scale = 1.0;
     this.radius = 18;
     this.hp = 12 + currentFloorIdx * 5;
     this.maxHp = this.hp;
@@ -3674,8 +4285,9 @@ class Enemy {
       if (this.type === 'boss_mister_666') {
         const frameHeight = 151;
         const frameWidth = 151;
-        const sy = (this.animFrame % 9) * frameHeight;
-        const size = 110 * this.scale;
+        const frameIdx = Math.floor((this.animTimer || 0) / 6) % 9;
+        const sy = frameIdx * frameHeight;
+        const size = 125 * (this.scale || 1.0);
         ctx.drawImage(img, 0, sy, frameWidth, frameHeight, this.x - size / 2, this.y - size / 2, size, size);
       } else if (this.type === 'boss_mega_satan') {
         const size = 160;
@@ -4293,6 +4905,7 @@ class Pickup {
     this.x = x;
     this.y = y;
     this.type = type;
+    this.scale = 1.0;
     this.radius = 14;
     this.itemId = null;
     this.cost = 0;
@@ -4325,72 +4938,65 @@ class Pickup {
         audio.playPickup();
         return true;
       }
-    } else if (this.playerNear && this.type === 'pedestal_item' && (keysHeld['KeyE'] || keysHeld['KeyF'] || keysHeld['Space'])) {
+    } else if (this.playerNear && this.type === 'pedestal_item') {
       if (this.costCoins > 0) {
-        if (player.coins >= this.costCoins) {
-          player.coins -= this.costCoins;
-          const item = ITEMS_DB[this.itemId];
-          if (item) {
-            item.apply(player);
-            const icon = item.icon ? RAW_ASSETS[item.icon] : RAW_ASSETS['meowmere_64.png'];
-            showItemBanner(item.name, item.desc, icon);
-          }
-          keysHeld['KeyE'] = false;
-          keysHeld['KeyF'] = false;
-          keysHeld['Space'] = false;
-          return true;
-        } else {
-          floatingTexts.push(new FloatingText(this.x, this.y - 20, 'НЕДОСТАТОЧНО МОНЕТ!', '#ffde59'));
-          keysHeld['KeyE'] = false;
-          keysHeld['KeyF'] = false;
-          keysHeld['Space'] = false;
-        }
-      }
-      else if (this.cost > 0) {
-        const totalHp = player.hp + player.soulHp;
-        const requiredHp = this.cost * 2;
-
-        if (totalHp >= requiredHp) {
-          let needed = requiredHp;
-          if (player.hp >= needed) {
-            player.hp -= needed;
+        if (keysHeld['KeyE'] || keysHeld['KeyF'] || keysHeld['Space'] || keysHeld['KeyE_mobile']) {
+          if (player.coins >= this.costCoins) {
+            player.coins -= this.costCoins;
+            const item = ITEMS_DB[this.itemId];
+            if (item) {
+              item.apply(player);
+              const icon = (item.icon && RAW_ASSETS[item.icon]) ? RAW_ASSETS[item.icon] : RAW_ASSETS['meowmere_64.png'];
+              showItemBanner(item.name, item.desc, icon);
+            }
+            keysHeld['KeyE'] = false; keysHeld['KeyF'] = false; keysHeld['Space'] = false;
+            return true;
           } else {
-            needed -= player.hp;
-            player.hp = 0;
-            player.soulHp -= needed;
+            floatingTexts.push(new FloatingText(this.x, this.y - 20, 'НЕДОСТАТОЧНО МОНЕТ!', '#ffde59'));
+            keysHeld['KeyE'] = false; keysHeld['KeyF'] = false; keysHeld['Space'] = false;
           }
+        }
+      } else if (this.cost > 0) {
+        if (keysHeld['KeyE'] || keysHeld['KeyF'] || keysHeld['Space'] || keysHeld['KeyE_mobile']) {
+          const totalHp = player.hp + player.soulHp;
+          const requiredHp = this.cost * 2;
 
-          const item = ITEMS_DB[this.itemId];
-          if (item) {
-            item.apply(player);
-            const icon = item.icon ? RAW_ASSETS[item.icon] : RAW_ASSETS['meowmere_64.png'];
-            showItemBanner(item.name, item.desc, icon);
+          if (totalHp >= requiredHp) {
+            let needed = requiredHp;
+            if (player.hp >= needed) {
+              player.hp -= needed;
+            } else {
+              needed -= player.hp;
+              player.hp = 0;
+              player.soulHp -= needed;
+            }
+
+            const item = ITEMS_DB[this.itemId];
+            if (item) {
+              item.apply(player);
+              const icon = (item.icon && RAW_ASSETS[item.icon]) ? RAW_ASSETS[item.icon] : RAW_ASSETS['meowmere_64.png'];
+              showItemBanner(item.name, item.desc, icon);
+            }
+            keysHeld['KeyE'] = false; keysHeld['KeyF'] = false; keysHeld['Space'] = false;
+
+            if (player.hp <= 0 && player.soulHp <= 0) {
+              triggerGameOver('Вы отдали последнюю каплю жизни за сделку с дьяволом!');
+            }
+
+            return true;
+          } else {
+            floatingTexts.push(new FloatingText(this.x, this.y - 20, 'НЕДОСТАТОЧНО СЕРДЕЦ!', '#ff2222'));
+            keysHeld['KeyE'] = false; keysHeld['KeyF'] = false; keysHeld['Space'] = false;
           }
-          keysHeld['KeyE'] = false;
-          keysHeld['KeyF'] = false;
-          keysHeld['Space'] = false;
-
-          if (player.hp <= 0 && player.soulHp <= 0) {
-            triggerGameOver('Вы отдали последнюю каплю жизни за сделку с дьяволом!');
-          }
-
-          return true;
-        } else {
-          floatingTexts.push(new FloatingText(this.x, this.y - 20, 'НЕДОСТАТОЧНО СЕРДЕЦ!', '#ff2222'));
-          keysHeld['KeyE'] = false;
-          keysHeld['KeyF'] = false;
-          keysHeld['Space'] = false;
         }
       } else {
         const item = ITEMS_DB[this.itemId];
         if (item) {
           item.apply(player);
-          const icon = item.icon ? RAW_ASSETS[item.icon] : RAW_ASSETS['meowmere_64.png'];
+          const icon = (item.icon && RAW_ASSETS[item.icon]) ? RAW_ASSETS[item.icon] : RAW_ASSETS['meowmere_64.png'];
           showItemBanner(item.name, item.desc, icon);
         }
-        keysHeld['KeyE'] = false;
-        keysHeld['KeyF'] = false;
-        keysHeld['Space'] = false;
+        keysHeld['KeyE'] = false; keysHeld['KeyF'] = false; keysHeld['Space'] = false;
         return true;
       }
     }
@@ -4556,9 +5162,11 @@ function enterRoom() {
   if (!currentRoom.cleared && currentRoom.enemiesToSpawn.length > 0) {
     currentRoom.enemiesToSpawn.forEach(etype => {
       let rx = player.x, ry = player.y;
-      while (Math.hypot(rx - player.x, ry - player.y) < 180) {
+      let attempts = 0;
+      while (Math.hypot(rx - player.x, ry - player.y) < 180 && attempts < 30) {
         rx = OFFSET_X + TILE_SIZE * (2 + Math.floor(Math.random() * 11));
         ry = OFFSET_Y + TILE_SIZE * (2 + Math.floor(Math.random() * 5));
+        attempts++;
       }
       enemies.push(new Enemy(rx, ry, etype));
     });
@@ -4701,15 +5309,19 @@ function updateHUD() {
   
   const fullHearts = Math.floor(Math.max(0, player.hp) / 2);
   const halfHeart = (Math.max(0, player.hp) % 2) === 1;
-  for (let i = 0; i < Math.floor(player.maxHp / 2); i++) {
+  const maxHCount = Math.min(16, Math.floor(Math.max(0, player.maxHp || 2) / 2));
+  const fullHCount = Math.min(maxHCount, fullHearts);
+
+  for (let i = 0; i < maxHCount; i++) {
     const span = document.createElement('span');
     span.style.fontSize = '20px';
-    if (i < fullHearts) span.innerText = '❤️';
-    else if (i === fullHearts && halfHeart) span.innerText = '💔';
+    if (i < fullHCount) span.innerText = '❤️';
+    else if (i === fullHCount && halfHeart) span.innerText = '💔';
     else span.innerText = '🖤';
     heartsDiv.appendChild(span);
   }
-  for (let i = 0; i < Math.ceil(Math.max(0, player.soulHp) / 2); i++) {
+  const soulHCount = Math.min(16, Math.ceil(Math.max(0, player.soulHp || 0) / 2));
+  for (let i = 0; i < soulHCount; i++) {
     const span = document.createElement('span');
     span.style.fontSize = '20px';
     span.innerText = '💙';
@@ -4801,25 +5413,40 @@ function drawMinimap() {
 }
 
 function showItemBanner(title, desc, iconSrc) {
-  const banner = document.getElementById('item-banner');
-  document.getElementById('banner-title').innerText = title;
-  document.getElementById('banner-desc').innerText = desc;
-  document.getElementById('banner-img').src = iconSrc || RAW_ASSETS['meowmere_64.png'];
-  
-  banner.classList.add('active');
-  audio.playItemFanfare();
+  try {
+    const banner = document.getElementById('item-banner');
+    if (!banner) return;
+    const tEl = document.getElementById('banner-title');
+    const dEl = document.getElementById('banner-desc');
+    const iEl = document.getElementById('banner-img');
+    
+    if (tEl) tEl.innerText = title || '';
+    if (dEl) dEl.innerText = desc || '';
+    if (iEl) iEl.src = iconSrc || (RAW_ASSETS ? RAW_ASSETS['meowmere_64.png'] : '');
+    
+    banner.classList.add('active');
+    if (audio && typeof audio.playItemFanfare === 'function') {
+      audio.playItemFanfare();
+    }
 
-  setTimeout(() => {
-    banner.classList.remove('active');
-  }, 2800);
+    setTimeout(() => {
+      try { if (banner) banner.classList.remove('active'); } catch(e) {}
+    }, 2800);
+  } catch(e) {
+    console.error('Error in showItemBanner:', e);
+  }
 }
 
 // --- MAIN GAME LOOP ---
 function gameLoop() {
-  if (gameState === 'PLAYING') {
-    update();
-    render();
-    updateHUD();
+  try {
+    if (gameState === 'PLAYING') {
+      update();
+      render();
+      updateHUD();
+    }
+  } catch(err) {
+    console.error('Error in game loop:', err);
   }
   requestAnimationFrame(gameLoop);
 }
@@ -5324,15 +5951,15 @@ function enterItemGallery() {
 
   // Populate Room 1: Weapons & Passives
   const weaponItems = [
-    'chara_knife', 'meowmere', 'terra_blade', 'tech_x', 'technology',
+    'chara_knife', 'meowmere', 'terra_blade', 'vampire_knives', 'solar_flare', 'starlight', 'star_wrath', 'tech_x', 'technology',
     'mini_brimstone', 'horns', 'godhead', 'ipecac', 'polyphemus',
     'playdough_cookie', 'soy_milk', 'chocolate_milk', 'strawberry_milk', 'magic_mushroom'
   ];
   weaponItems.forEach((key, idx) => {
-    const r = Math.floor(idx / 5);
-    const c = idx % 5;
-    const px = OFFSET_X + TILE_SIZE * (2.5 + c * 2.2);
-    const py = OFFSET_Y + TILE_SIZE * (2.0 + r * 2.0);
+    const r = Math.floor(idx / 7);
+    const c = idx % 7;
+    const px = OFFSET_X + TILE_SIZE * (1.8 + c * 1.6);
+    const py = OFFSET_Y + TILE_SIZE * (1.8 + r * 1.4);
     const p = new Pickup(px, py, 'pedestal_item');
     p.itemId = key;
     room1.pickups.push(p);
@@ -5346,8 +5973,8 @@ function enterItemGallery() {
   shopPlanItems.forEach((key, idx) => {
     const r = Math.floor(idx / 5);
     const c = idx % 5;
-    const px = OFFSET_X + TILE_SIZE * (2.5 + c * 2.2);
-    const py = OFFSET_Y + TILE_SIZE * (2.0 + r * 2.0);
+    const px = OFFSET_X + TILE_SIZE * (2.8 + c * 1.9);
+    const py = OFFSET_Y + TILE_SIZE * (1.8 + r * 1.8);
     const p = new Pickup(px, py, 'pedestal_item');
     p.itemId = key;
     room2.pickups.push(p);
@@ -5355,14 +5982,14 @@ function enterItemGallery() {
 
   // Populate Room 3: Angel & Devil Deals + Training Dummy
   const holyDevilItems = [
-    'sacred_heart', 'relic', 'halo_of_flies', 'guardian_angel', 'stigmata',
+    'sacred_heart', 'brimstone_full', 'relic', 'halo_of_flies', 'guardian_angel', 'stigmata',
     'purity', 'the_pact', 'abaddon', 'lord_of_the_pit', 'eye_of_belial', 'halo'
   ];
   holyDevilItems.forEach((key, idx) => {
     const r = Math.floor(idx / 5);
     const c = idx % 5;
-    const px = OFFSET_X + TILE_SIZE * (2.5 + c * 2.2);
-    const py = OFFSET_Y + TILE_SIZE * (1.8 + r * 1.8);
+    const px = OFFSET_X + TILE_SIZE * (2.2 + c * 2.1);
+    const py = OFFSET_Y + TILE_SIZE * (2.6 + r * 1.5);
     const p = new Pickup(px, py, 'pedestal_item');
     p.itemId = key;
     room3.pickups.push(p);
@@ -5376,6 +6003,9 @@ function enterItemGallery() {
   currentRoom = room1;
 
   enterRoom();
+  // Set player spawn away from item pedestals
+  player.x = OFFSET_X + TILE_SIZE * 6.5;
+  player.y = OFFSET_Y + TILE_SIZE * 7.0;
 
   document.getElementById('menu-screen').style.display = 'none';
   document.getElementById('gameover-screen').style.display = 'none';
