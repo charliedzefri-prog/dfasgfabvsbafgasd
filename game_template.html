@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>The Binding of Isaac: Mobile & Planetarium Edition</title>
+  <title>The Binding of Isaac: Chara's Knife & Brimstone Synergies</title>
   <style>
     * {
       box-sizing: border-box;
@@ -13,31 +13,34 @@
       -webkit-user-select: none;
       touch-action: manipulation;
     }
-    body {
-      background: #08050c;
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      background: #000;
       color: #fff;
       font-family: 'Courier New', Courier, monospace;
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
-      min-height: 100vh;
       overflow: hidden;
     }
     #game-container {
       position: relative;
-      width: 960px;
-      height: 640px;
-      box-shadow: 0 0 40px rgba(170, 0, 255, 0.5), 0 0 15px rgba(0, 0, 0, 0.9);
-      border: 4px solid #3d2836;
-      border-radius: 8px;
+      width: min(960px, 100vw, calc(100vh * 1.5));
+      height: min(640px, 100vh, calc(100vw / 1.5));
+      box-shadow: 0 0 35px rgba(170, 0, 255, 0.5), 0 0 15px rgba(0, 0, 0, 0.9);
+      border: 2px solid #3d2836;
+      border-radius: 6px;
       background-color: #120e17;
       overflow: hidden;
     }
-    canvas {
+    canvas#gameCanvas {
       width: 100%;
       height: 100%;
       display: block;
+      object-fit: contain;
       image-rendering: pixelated;
       image-rendering: crisp-edges;
     }
@@ -60,17 +63,17 @@
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
-      padding: 10px 16px;
+      padding: 8px 12px;
       background: linear-gradient(180deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 100%);
     }
     .hud-box {
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: 3px;
     }
     .hearts-container {
       display: flex;
-      gap: 4px;
+      gap: 3px;
       align-items: center;
     }
     .stats-hud {
@@ -78,13 +81,13 @@
       color: #d1b8e0;
       text-shadow: 1px 1px 2px #000;
       display: flex;
-      gap: 10px;
+      gap: 8px;
       margin-top: 2px;
     }
     .resources-hud {
       display: flex;
-      gap: 14px;
-      font-size: 15px;
+      gap: 12px;
+      font-size: 14px;
       font-weight: bold;
       color: #ffde59;
       text-shadow: 2px 2px 0 #000;
@@ -95,15 +98,15 @@
       gap: 4px;
     }
     #floor-title-hud {
-      font-size: 13px;
+      font-size: 12px;
       color: #a080cc;
       font-weight: bold;
       text-shadow: 1px 1px 2px #000;
     }
     /* Minimap */
     #minimap-canvas {
-      width: 100px;
-      height: 100px;
+      width: 85px;
+      height: 85px;
       background: rgba(0,0,0,0.75);
       border: 2px solid #5a3d5c;
       border-radius: 4px;
@@ -117,7 +120,7 @@
       background: rgba(20, 10, 25, 0.95);
       border: 3px solid #ff44aa;
       border-radius: 8px;
-      padding: 16px 32px;
+      padding: 14px 28px;
       text-align: center;
       box-shadow: 0 0 25px rgba(255, 68, 170, 0.8);
       transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -127,19 +130,19 @@
       transform: translate(-50%, -50%) scale(1);
     }
     #item-banner img {
-      width: 64px;
-      height: 64px;
+      width: 56px;
+      height: 56px;
       image-rendering: pixelated;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
     #item-banner h2 {
-      font-size: 22px;
+      font-size: 20px;
       color: #ff77d6;
       text-shadow: 2px 2px #000;
       margin-bottom: 4px;
     }
     #item-banner p {
-      font-size: 14px;
+      font-size: 13px;
       color: #e0d0ff;
     }
     /* Floor Transition Overlay */
@@ -164,50 +167,69 @@
       pointer-events: auto;
     }
     #floor-banner h1 {
-      font-size: 36px;
+      font-size: 32px;
       color: #ff44aa;
       text-shadow: 3px 3px 0 #000, 0 0 20px #ff0088;
       margin-bottom: 8px;
     }
     #floor-banner p {
-      font-size: 18px;
+      font-size: 16px;
       color: #b0a0e0;
     }
+
     /* Mobile Touch Controls Overlay */
     .touch-controls {
       position: absolute;
-      bottom: 12px;
+      bottom: 8px;
       left: 0;
       width: 100%;
-      display: flex;
+      display: none;
       justify-content: space-between;
-      padding: 0 16px;
+      padding: 0 10px;
       pointer-events: auto;
       z-index: 40;
     }
+
+    @media (hover: none) and (pointer: coarse), (max-width: 768px) {
+      .touch-controls {
+        display: flex !important;
+      }
+      #controls-hint {
+        display: none !important;
+      }
+    }
+
     .touch-pad {
       display: grid;
-      grid-template-columns: repeat(3, 44px);
-      grid-template-rows: repeat(3, 44px);
-      gap: 4px;
+      grid-template-columns: repeat(3, 38px);
+      grid-template-rows: repeat(3, 38px);
+      gap: 3px;
     }
     .tbtn {
-      background: rgba(255, 255, 255, 0.15);
-      border: 1.5px solid rgba(255, 255, 255, 0.35);
+      background: rgba(255, 255, 255, 0.22);
+      border: 1.5px solid rgba(255, 255, 255, 0.45);
       border-radius: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 18px;
+      font-size: 15px;
       color: white;
       user-select: none;
       font-weight: bold;
       box-shadow: 0 2px 5px rgba(0,0,0,0.5);
     }
     .tbtn:active {
-      background: rgba(255, 68, 170, 0.6);
+      background: rgba(255, 68, 170, 0.7);
       transform: scale(0.92);
     }
+
+    .touch-bomb-box {
+      position: absolute;
+      bottom: 135px;
+      left: 10px;
+      pointer-events: auto;
+    }
+
     /* Controls Bar Footer */
     #controls-hint {
       position: absolute;
@@ -222,6 +244,7 @@
       border: 1px solid #4a3055;
       text-shadow: 1px 1px 1px #000;
     }
+
     /* Menus Overlay */
     .menu-screen {
       position: absolute;
@@ -238,7 +261,7 @@
       pointer-events: auto;
     }
     .menu-title {
-      font-size: 32px;
+      font-size: 30px;
       font-weight: bold;
       color: #ff44aa;
       text-shadow: 3px 3px 0 #330022, 0 0 15px rgba(255,68,170,0.6);
@@ -249,26 +272,36 @@
     .menu-subtitle {
       font-size: 13px;
       color: #a0a0d0;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
       text-align: center;
     }
     .char-grid {
       display: flex;
-      gap: 10px;
-      margin-bottom: 18px;
+      gap: 12px;
+      margin-bottom: 14px;
       flex-wrap: wrap;
       justify-content: center;
       max-width: 920px;
       max-height: 380px;
       overflow-y: auto;
-      padding: 6px;
+      padding: 10px;
     }
     .char-card {
       background: #201628;
       border: 2px solid #4a3055;
       border-radius: 8px;
-      padding: 8px;
-      width: 135px;
+      padding: 10px 8px;
+      width: 110px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      user-select: none;
+      touch-action: manipulation;
+    }
+      width: 130px;
       text-align: center;
       cursor: pointer;
       transition: all 0.2s ease;
@@ -279,13 +312,36 @@
       transform: translateY(-3px);
       box-shadow: 0 6px 15px rgba(255,68,170,0.4);
     }
-    .char-card img {
+    
+    .char-portrait {
       width: 48px;
       height: 48px;
-      image-rendering: pixelated;
-      margin-bottom: 4px;
-      object-fit: contain;
+      margin: 0 auto 6px auto;
+      overflow: hidden;
+      position: relative;
+      background: rgba(0, 0, 0, 0.4);
+      border-radius: 6px;
+      border: 1px solid #5a3d5c;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
+    .char-portrait img.sheet-portrait {
+      width: 144px;
+      height: 192px;
+      position: absolute;
+      top: 0;
+      left: -48px;
+      image-rendering: pixelated;
+    }
+    .char-portrait img.sin-portrait {
+      width: 42px;
+      height: 42px;
+      object-fit: contain;
+      object-position: center;
+      image-rendering: pixelated;
+    }
+
     .char-name {
       font-size: 12px;
       font-weight: bold;
@@ -317,7 +373,7 @@
     }
     .btn-small {
       padding: 6px 12px;
-      font-size: 12px;
+      font-size: 11px;
     }
   </style>
 </head>
@@ -347,41 +403,45 @@
         <div style="display: flex; gap: 8px; align-items: flex-start;">
           <button class="btn btn-small interactive" id="btn-menu">🏠 В меню</button>
           <button class="btn btn-small interactive" id="btn-audio">🎵 Музыка: ВКЛ</button>
-          <canvas id="minimap-canvas" width="100" height="100"></canvas>
+          <canvas id="minimap-canvas" width="85" height="85"></canvas>
         </div>
       </div>
 
-      <!-- Mobile Touch Controls -->
+      <!-- Mobile Touch Controls Overlay -->
       <div class="touch-controls">
-        <!-- Movement D-Pad -->
-        <div class="touch-pad">
-          <div></div>
-          <div class="tbtn" id="tb-w">▲</div>
-          <div></div>
-          <div class="tbtn" id="tb-a">◀</div>
-          <div class="tbtn" id="tb-e">E</div>
-          <div class="tbtn" id="tb-d">▶</div>
-          <div></div>
-          <div class="tbtn" id="tb-s">▼</div>
-          <div class="tbtn" id="tb-bomb">💣</div>
+        <div class="touch-bomb-box">
+          <div class="tbtn" id="tb-bomb" style="width: 44px; height: 44px; background: rgba(255, 80, 0, 0.5);">💣</div>
         </div>
 
-        <!-- Shooting D-Pad -->
+        <!-- 8-Direction Movement D-Pad -->
         <div class="touch-pad">
-          <div></div>
+          <div class="tbtn" id="tb-mov-ul">↖</div>
+          <div class="tbtn" id="tb-w">▲</div>
+          <div class="tbtn" id="tb-mov-ur">↗</div>
+          <div class="tbtn" id="tb-a">◀</div>
+          <div class="tbtn" id="tb-e" style="background: rgba(0,200,255,0.4);">E</div>
+          <div class="tbtn" id="tb-d">▶</div>
+          <div class="tbtn" id="tb-mov-dl">↙</div>
+          <div class="tbtn" id="tb-s">▼</div>
+          <div class="tbtn" id="tb-mov-dr">↘</div>
+        </div>
+
+        <!-- 8-Direction Shooting D-Pad -->
+        <div class="touch-pad">
+          <div class="tbtn" id="tb-shoot-ul">↖</div>
           <div class="tbtn" id="tb-up">▲</div>
-          <div></div>
+          <div class="tbtn" id="tb-shoot-ur">↗</div>
           <div class="tbtn" id="tb-left">◀</div>
-          <div></div>
+          <div class="tbtn" style="opacity: 0.3;">🎯</div>
           <div class="tbtn" id="tb-right">▶</div>
-          <div></div>
+          <div class="tbtn" id="tb-shoot-dl">↙</div>
           <div class="tbtn" id="tb-down">▼</div>
-          <div></div>
+          <div class="tbtn" id="tb-shoot-dr">↘</div>
         </div>
       </div>
 
       <div id="controls-hint">
-        🎮 Движение: <b>WASD / Тач</b> | Стрельба: <b>Стрелки / Мышь / Тач</b> | Войти в люк: <b>E</b> | Бомба: <b>Shift / 💣</b>
+        🎮 Движение: <b>WASD</b> | Стрельба: <b>Стрелки / Мышь</b> | Купить / Войти: <b>E</b> | Бомба: <b>Shift</b> | Пауза: <b>P</b>
       </div>
     </div>
 
@@ -401,7 +461,7 @@
     <!-- Start / Character Selection Screen -->
     <div id="menu-screen" class="menu-screen">
       <div class="menu-title">THE BINDING OF ISAAC</div>
-      <div class="menu-subtitle">🔥 MOBILE, PLANETARIUM & DEVIL ROOMS 🐱</div>
+      <div class="menu-subtitle">🔪 CHARA'S KNIFE & MEOWMERE SYNERGIES 🐱</div>
 
       <div class="char-grid" id="char-select-grid"></div>
 
@@ -448,6 +508,28 @@ const IMAGES = {};
 let assetsLoaded = 0;
 const totalAssets = Object.keys(RAW_ASSETS).length;
 
+// --- GLOBAL GAME STATE & CANVAS ENGINE VARIABLES ---
+let canvas = null;
+let ctx = null;
+let miniCtx = null;
+let gameState = 'MENU';
+let selectedCharIdx = 0;
+let player = null;
+let enemies = [];
+let projectiles = [];
+let enemyProjectiles = [];
+let pickups = [];
+let roomObjects = [];
+let particles = [];
+let floatingTexts = [];
+let keysHeld = {};
+let mousePos = { x: 0, y: 0, down: false };
+let currentRoom = null;
+let currentRoomPos = { x: 2, y: 2 };
+let dungeonMap = [];
+let roomTransition = null;
+let roomGraceTimer = 0;
+
 function loadAssets(callback) {
   for (let key in RAW_ASSETS) {
     const img = new Image();
@@ -460,35 +542,74 @@ function loadAssets(callback) {
   }
 }
 
-// --- SOUND & MUSIC ENGINE (Web Audio API Synthesizer) ---
+// Helper Segment Distance Function
+function distToSegment(p1, p2, p) {
+  const l2 = (p2.x - p1.x) ** 2 + (p2.y - p1.y) ** 2;
+  if (l2 === 0) return Math.hypot(p.x - p1.x, p.y - p1.y);
+  let t = ((p.x - p1.x) * (p2.x - p1.x) + (p.y - p1.y) * (p2.y - p1.y)) / l2;
+  t = Math.max(0, Math.min(1, t));
+  return Math.hypot(p.x - (p1.x + t * (p2.x - p1.x)), p.y - (p1.y + t * (p2.y - p1.y)));
+}
+
+function getShootDirection() {
+  let dx = 0, dy = 0;
+  if (keysHeld['ArrowLeft']) dx -= 1;
+  if (keysHeld['ArrowRight']) dx += 1;
+  if (keysHeld['ArrowUp']) dy -= 1;
+  if (keysHeld['ArrowDown']) dy += 1;
+
+  if (dx === 0 && dy === 0 && mousePos.down && player) {
+    const angle = Math.atan2(mousePos.y - player.y, mousePos.x - player.x);
+    dx = Math.cos(angle);
+    dy = Math.sin(angle);
+  }
+
+  if (dx === 0 && dy === 0) return null;
+
+  if (dx === 0 && dy < 0) return { x: 0, y: -1 };          // UP ⬆
+  if (dx === 0 && dy > 0) return { x: 0, y: 1 };           // DOWN ⬇
+  if (dx < 0 && dy === 0) return { x: -1, y: 0 };          // LEFT ⬅
+  if (dx > 0 && dy === 0) return { x: 1, y: 0 };           // RIGHT ➔
+  if (dx < 0 && dy < 0) return { x: -0.7071, y: -0.7071 }; // UP-LEFT ↖
+  if (dx > 0 && dy < 0) return { x: 0.7071, y: -0.7071 };  // UP-RIGHT ↗
+  if (dx < 0 && dy > 0) return { x: -0.7071, y: 0.7071 };  // DOWN-LEFT ↙
+  if (dx > 0 && dy > 0) return { x: 0.7071, y: 0.7071 };   // DOWN-RIGHT ↘
+
+  const len = Math.hypot(dx, dy);
+  return { x: dx / len, y: dy / len };
+}
+
+// --- SOUND & MULTI-TRACK LOCATION MUSIC ENGINE ---
 class AudioEngine {
   constructor() {
     this.ctx = null;
     this.muted = false;
     this.bgmTimer = null;
     this.noteStep = 0;
+    this.currentTrackType = 'normal';
   }
   init() {
     if (!this.ctx) {
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
       this.ctx = new AudioCtx();
     }
+    if (this.ctx && this.ctx.state === 'suspended') {
+      this.ctx.resume();
+    }
   }
   playMeow() {
+    this.init();
     if (this.muted || !this.ctx) return;
     try {
       const now = this.ctx.currentTime;
       const osc = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
       osc.type = 'triangle';
-      
       osc.frequency.setValueAtTime(550, now);
       osc.frequency.exponentialRampToValueAtTime(1100, now + 0.08);
       osc.frequency.exponentialRampToValueAtTime(700, now + 0.25);
-
       gain.gain.setValueAtTime(0.2, now);
       gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
-
       osc.connect(gain);
       gain.connect(this.ctx.destination);
       osc.start(now);
@@ -496,6 +617,7 @@ class AudioEngine {
     } catch(e) {}
   }
   playTear() {
+    this.init();
     if (this.muted || !this.ctx) return;
     try {
       const now = this.ctx.currentTime;
@@ -513,6 +635,7 @@ class AudioEngine {
     } catch(e) {}
   }
   playHit() {
+    this.init();
     if (this.muted || !this.ctx) return;
     try {
       const now = this.ctx.currentTime;
@@ -530,6 +653,7 @@ class AudioEngine {
     } catch(e) {}
   }
   playExplosion() {
+    this.init();
     if (this.muted || !this.ctx) return;
     try {
       const now = this.ctx.currentTime;
@@ -547,6 +671,7 @@ class AudioEngine {
     } catch(e) {}
   }
   playPickup() {
+    this.init();
     if (this.muted || !this.ctx) return;
     try {
       const now = this.ctx.currentTime;
@@ -565,6 +690,7 @@ class AudioEngine {
     } catch(e) {}
   }
   playTrapdoor() {
+    this.init();
     if (this.muted || !this.ctx) return;
     try {
       const now = this.ctx.currentTime;
@@ -582,6 +708,7 @@ class AudioEngine {
     } catch(e) {}
   }
   playItemFanfare() {
+    this.init();
     if (this.muted || !this.ctx) return;
     try {
       const now = this.ctx.currentTime;
@@ -601,38 +728,96 @@ class AudioEngine {
       });
     } catch(e) {}
   }
+
+  setTrackType(type) {
+    this.currentTrackType = type;
+  }
+
   startBGM() {
     if (this.bgmTimer) return;
-    const bassline = [110, 110, 130.81, 123.47, 98, 98, 110, 123.47];
-    const melody = [220, 261.63, 293.66, 329.63, 261.63, 220, 196, 220];
     
     this.bgmTimer = setInterval(() => {
+      this.init();
       if (this.muted || !this.ctx) return;
       try {
         const now = this.ctx.currentTime;
         
-        const bOsc = this.ctx.createOscillator();
-        const bGain = this.ctx.createGain();
-        bOsc.type = 'sawtooth';
-        bOsc.frequency.value = bassline[this.noteStep % bassline.length];
-        bGain.gain.setValueAtTime(0.06, now);
-        bGain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
-        bOsc.connect(bGain);
-        bGain.connect(this.ctx.destination);
-        bOsc.start(now);
-        bOsc.stop(now + 0.2);
+        if (this.currentTrackType === 'boss_battle') {
+          const bossNotes = [110, 116.54, 123.47, 110, 130.81, 116.54, 110, 103.83, 110, 123.47, 138.59, 110, 146.83, 130.81, 123.47, 116.54];
+          const freq = bossNotes[this.noteStep % bossNotes.length];
+          
+          const osc1 = this.ctx.createOscillator();
+          const osc2 = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
 
-        if (this.noteStep % 2 === 0) {
-          const mOsc = this.ctx.createOscillator();
-          const mGain = this.ctx.createGain();
-          mOsc.type = 'square';
-          mOsc.frequency.value = melody[(this.noteStep / 2) % melody.length];
-          mGain.gain.setValueAtTime(0.04, now);
-          mGain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
-          mOsc.connect(mGain);
-          mGain.connect(this.ctx.destination);
-          mOsc.start(now);
-          mOsc.stop(now + 0.3);
+          osc1.type = 'sawtooth';
+          osc2.type = 'square';
+
+          osc1.frequency.setValueAtTime(freq, now);
+          osc2.frequency.setValueAtTime(freq * 1.5, now);
+
+          gain.gain.setValueAtTime(0.08, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+
+          osc1.connect(gain);
+          osc2.connect(gain);
+          gain.connect(this.ctx.destination);
+
+          osc1.start(now);
+          osc2.start(now);
+          osc1.stop(now + 0.18);
+          osc2.stop(now + 0.18);
+        } else if (this.currentTrackType === 'shop') {
+          const shopChords = [261.63, 329.63, 392.00, 493.88, 293.66, 349.23, 440.00, 523.25];
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.value = shopChords[this.noteStep % shopChords.length];
+          gain.gain.setValueAtTime(0.05, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.25);
+        } else if (this.currentTrackType === 'planetarium') {
+          const planNotes = [329.63, 392.00, 493.88, 587.33, 659.25, 587.33];
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.value = planNotes[this.noteStep % planNotes.length];
+          gain.gain.setValueAtTime(0.04, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.4);
+        } else {
+          const bassline = [110, 110, 130.81, 123.47, 98, 98, 110, 123.47];
+          const melody = [220, 261.63, 293.66, 329.63, 261.63, 220, 196, 220];
+
+          const bOsc = this.ctx.createOscillator();
+          const bGain = this.ctx.createGain();
+          bOsc.type = 'sawtooth';
+          bOsc.frequency.value = bassline[this.noteStep % bassline.length];
+          bGain.gain.setValueAtTime(0.06, now);
+          bGain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+          bOsc.connect(bGain);
+          bGain.connect(this.ctx.destination);
+          bOsc.start(now);
+          bOsc.stop(now + 0.2);
+
+          if (this.noteStep % 2 === 0) {
+            const mOsc = this.ctx.createOscillator();
+            const mGain = this.ctx.createGain();
+            mOsc.type = 'square';
+            mOsc.frequency.value = melody[(this.noteStep / 2) % melody.length];
+            mGain.gain.setValueAtTime(0.04, now);
+            mGain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+            mOsc.connect(mGain);
+            mGain.connect(this.ctx.destination);
+            mOsc.start(now);
+            mOsc.stop(now + 0.3);
+          }
         }
 
         this.noteStep++;
@@ -656,17 +841,16 @@ const FLOORS = [
   { id: 9, name: 'ЭТАЖ 9: ЛОГОВО МЕГА САТАНЫ (THE VOID)', bgTile: '#2b103d', wallColor: '#12031c', boss: 'boss_mega_satan' }
 ];
 
-// Rich Floor Mobs Roster (ALL 14 MOBS!)
 const FLOOR_MOBS = {
-  1: ['mouse', 'snake', 'chicken', 'bunny'],
-  2: ['grey_mask', 'mouse', 'builder'],
-  3: ['clown', 'duck_mob', 'seven_mob'],
-  4: ['sosal', 'boxer', 'snake'],
-  5: ['grey_mask', 'sans_mob', 'brimstone_demon'],
-  6: ['clown', 'angel_mob', 'boxer'],
-  7: ['sosal', 'mouse', 'bunny', 'brimstone_demon'],
-  8: ['brimstone_demon', 'sosal', 'builder', 'sans_mob'],
-  9: ['brimstone_demon', 'clown', 'sosal', 'grey_mask', 'snake', 'mouse', 'chicken', 'boxer', 'seven_mob']
+  1: ['mouse', 'snake', 'chicken', 'bunny', 'alt1_1'],
+  2: ['grey_mask', 'mouse', 'builder', 'alt1_4'],
+  3: ['clown', 'duck_mob', 'seven_mob', 'alt2_1'],
+  4: ['sosal', 'boxer', 'snake', 'alt1_3'],
+  5: ['grey_mask', 'sans_mob', 'brimstone_demon', 'alt2_2'],
+  6: ['clown', 'angel_mob', 'boxer', 'alt1_5'],
+  7: ['sosal', 'mouse', 'bunny', 'brimstone_demon', 'alt2_4'],
+  8: ['ram_mob_1', 'ram_mob_2', 'ram_mob_3', 'ram_mob_4', 'brimstone_demon', 'sosal'],
+  9: ['ram_mob_1', 'ram_mob_2', 'ram_mob_3', 'ram_mob_4', 'brimstone_demon', 'clown', 'sosal', 'grey_mask', 'alt1_2', 'alt2_3']
 };
 
 let currentFloorIdx = 0;
@@ -681,6 +865,51 @@ const OFFSET_X = (CANVAS_W - ROOM_GRID_W * TILE_SIZE) / 2;
 const OFFSET_Y = (CANVAS_H - ROOM_GRID_H * TILE_SIZE) / 2 + 20;
 
 const CHARACTERS = [
+  {
+    id: 'boxer_champ',
+    name: 'Боксёр-Чемпион',
+    sheet: 'char_boxer.png',
+    hp: 8, maxHp: 8, soulHp: 0,
+    speed: 4.0, damage: 5.0, tearRate: 1.3,
+    desc: '🥊 НЕПОБЕДИМЫЙ ЧЕМПИОН! Начинает с Магическим Грибом и высоким уроном!',
+    item: 'magic_mushroom'
+  },
+  {
+    id: 'sosal_devil',
+    name: 'Демон SOSAL (Азазель)',
+    sheet: 'char_sosal_devil.png',
+    hp: 2, maxHp: 2, soulHp: 4,
+    speed: 4.2, damage: 5.5, tearRate: 1.1,
+    desc: '👿 СТАРТУЕТ КАК АЗАЗЕЛЬ! Заряжаемый короткий красный Бримстоун!',
+    item: 'mini_brimstone'
+  },
+  {
+    id: 'ram_knight',
+    name: 'Барашек-Воин',
+    sheet: 'char_ram_1.png',
+    hp: 6, maxHp: 6, soulHp: 2,
+    speed: 4.0, damage: 4.8, tearRate: 1.1,
+    desc: '🐑 БАРАШЕК ПРЕИСПОДНЕЙ! Начинает со Священной Свечой и рогами!',
+    item: 'holy_candle'
+  },
+  {
+    id: 'purple_phantom',
+    name: 'Фиолетовая Тень',
+    sheet: 'char_alt1_2.png',
+    hp: 4, maxHp: 4, soulHp: 4,
+    speed: 4.2, damage: 4.2, tearRate: 1.2,
+    desc: '🔮 ТЕНЕВОЙ ПРИЗРАК! Самонаводящиеся фиолетовые слёзы!',
+    item: 'spoon_bender'
+  },
+  {
+    id: 'green_crown_cat',
+    name: 'Коронованный Кот',
+    sheet: 'char_alt2_4.png',
+    hp: 6, maxHp: 6, soulHp: 0,
+    speed: 3.8, damage: 4.5, tearRate: 1.0,
+    desc: '👑 ИЗУМРУДНЫЙ КОРОЛЬ! Летающие лазерные кольца Технологии X!',
+    item: 'tech_x'
+  },
   {
     id: 'cat_warrior',
     name: 'Мяу-Рыцарь',
@@ -707,50 +936,91 @@ const CHARACTERS = [
     speed: 4.0, damage: 3.0, tearRate: 1.1,
     desc: 'Священный ангел с душевными сердцами и полётом.',
     item: 'halo'
-  },
-  {
-    id: 'sosal_devil',
-    name: 'Демон SOSAL',
-    sheet: 'char_sosal_devil.png',
-    hp: 2, maxHp: 2, soulHp: 4,
-    speed: 4.2, damage: 5.5, tearRate: 0.9,
-    desc: 'Адский демон с мощным уроном кровавыми слезами.',
-    item: 'horns'
-  },
-  {
-    id: 'greed_sin',
-    name: 'Грех Жадность',
-    sheet: 'sin_greed.png',
-    hp: 6, maxHp: 6, soulHp: 2,
-    speed: 4.0, damage: 4.0, tearRate: 1.1,
-    desc: '💰 Крутой смайл! Монеты дают прибавку к урону!',
-    isSinImg: true,
-    item: 'money_power'
-  },
-  {
-    id: 'wrath_sin',
-    name: 'Грех Гнев',
-    sheet: 'sin_wrath.png',
-    hp: 4, maxHp: 4, soulHp: 0,
-    speed: 4.5, damage: 6.0, tearRate: 0.8,
-    desc: '🔥 Разъярённая корона! Огромная скорость и урон!',
-    isSinImg: true,
-    item: null
-  },
-  {
-    id: 'pride_sin',
-    name: 'Грех Гордыня',
-    sheet: 'sin_pride.png',
-    hp: 8, maxHp: 8, soulHp: 0,
-    speed: 3.2, damage: 5.0, tearRate: 1.0,
-    desc: '💪 Накачанный крепыш! Огромный запас здоровья.',
-    isSinImg: true,
-    item: null
   }
 ];
 
-// --- EXPANDED ITEMS DATABASE ---
+// --- EXPANDED ITEMS DATABASE (WITH CHARA'S KNIFE, MILKS & SYNERGIES!) ---
 const ITEMS_DB = {
+  chara_knife: {
+    id: 'chara_knife',
+    name: 'НОЖ ЧАРЫ (CHARA\'S KNIFE)',
+    desc: 'Заряжаемый ножик! Чем дольше держишь — тем дальше летит и сильнее рубит!',
+    icon: 'chara_knife_64.png',
+    cost: 0,
+    apply: (p) => {
+      p.hasKnife = true;
+      p.damage += 4.0;
+    }
+  },
+  godhead: {
+    id: 'godhead',
+    name: 'БОЖЕСТВЕННЫЙ ЛИК (GODHEAD)',
+    desc: 'Священный ореол урона + Наводящиеся слезы + Урон +3.0!',
+    icon: 'icon_godhead.png',
+    cost: 0,
+    apply: (p) => {
+      p.damage += 3.0;
+      p.homingTears = true;
+      p.hasGodhead = true;
+    }
+  },
+  ipecac: {
+    id: 'ipecac',
+    name: 'ИПЕКАК (IPECAC)',
+    desc: 'Огромный урон (+10.0)! Гигантские ядовитые взрывные слёзы!',
+    icon: 'icon_ipecac.png',
+    cost: 0,
+    apply: (p) => {
+      p.hasIpecac = true;
+      p.damage += 10.0;
+      p.tearScale *= 1.8;
+    }
+  },
+  playdough_cookie: {
+    id: 'playdough_cookie',
+    name: 'РАДУЖНАЯ ПЕЧЕНЬКА (PLAYDOUGH COOKIE)',
+    desc: 'Радужный перелив всех снарядов + Самонаведение + Рикошет!',
+    icon: 'icon_playdough_cookie.png',
+    cost: 0,
+    apply: (p) => {
+      p.hasCookie = true;
+      p.homingTears = true;
+      p.damage += 2.0;
+    }
+  },
+  soy_milk: {
+    id: 'soy_milk',
+    name: 'СОЕВОЕ МОЛОКО (SOY MILK)',
+    desc: 'Сверхскоростной пулемёт слёз (+300% скор. атаки), но урон x0.2!',
+    icon: 'icon_soy_milk.png',
+    cost: 0,
+    apply: (p) => {
+      p.hasSoyMilk = true;
+      p.tearRate *= 3.5;
+    }
+  },
+  chocolate_milk: {
+    id: 'chocolate_milk',
+    name: 'ШОКОЛАДНОЕ МОЛОКО (CHOCOLATE MILK)',
+    desc: 'Заряжаемые шоколадные слёзы! Удерживай атаку для урона до +250%!',
+    icon: 'icon_chocolate_milk.png',
+    cost: 0,
+    apply: (p) => {
+      p.hasChocMilk = true;
+    }
+  },
+  strawberry_milk: {
+    id: 'strawberry_milk',
+    name: 'КЛУБНИЧНОЕ МОЛОКО (STRAWBERRY MILK)',
+    desc: 'Клубничные радужные слёзы! Урон x1.5 + Восстановление HP!',
+    icon: 'icon_strawberry_milk.png',
+    cost: 0,
+    apply: (p) => {
+      p.hasStrawMilk = true;
+      p.damage *= 1.5;
+      p.hp = Math.min(p.maxHp, p.hp + 4);
+    }
+  },
   meowmere: {
     id: 'meowmere',
     name: 'МЯУМУР (MEOWMERE)',
@@ -763,11 +1033,105 @@ const ITEMS_DB = {
       p.tearSpeed += 2.0;
     }
   },
+  holy_candle: {
+    id: 'holy_candle',
+    name: 'СВЯЩЕННАЯ СВЕЧА (SHOP)',
+    desc: 'Синее святое пламя! Урон +2.0!',
+    icon: 'icon_holy_candle.png',
+    costCoins: 15,
+    apply: (p) => {
+      p.damage += 2.0;
+      p.hasCandle = true;
+    }
+  },
+  treasure_map: {
+    id: 'treasure_map',
+    name: 'КАРТА КАРТОГРАФА (SHOP)',
+    desc: 'Мгновенно открывает всю миникарту подземелья!',
+    icon: 'icon_treasure_map.png',
+    costCoins: 15,
+    apply: (p) => {
+      p.hasMap = true;
+      dungeonMap.forEach(row => row.forEach(r => { if (r) r.visited = true; }));
+    }
+  },
+  coin_magnet: {
+    id: 'coin_magnet',
+    name: 'МАГНИТ МОНЕТ (SHOP)',
+    desc: 'Притягивает все монеты и сердца к игроку!',
+    icon: 'icon_coin_magnet.png',
+    costCoins: 15,
+    apply: (p) => {
+      p.hasMagnet = true;
+    }
+  },
+  shop_heart: {
+    id: 'shop_heart',
+    name: 'СЕРДЦЕ ИСЦЕЛЕНИЯ (SHOP)',
+    desc: 'Восстанавливает 2 красных сердца за 5 монет!',
+    icon: 'meowmere_64.png',
+    costCoins: 5,
+    apply: (p) => {
+      p.hp = Math.min(p.maxHp, p.hp + 4);
+    }
+  },
+  shop_bombs: {
+    id: 'shop_bombs',
+    name: 'НАБОР БОМБ +3 (SHOP)',
+    desc: '+3 Бомбы за 5 монет!',
+    icon: 'meowmere_64.png',
+    costCoins: 5,
+    apply: (p) => {
+      p.bombs += 3;
+    }
+  },
+  shop_keys: {
+    id: 'shop_keys',
+    name: 'НАБОР КЛЮЧЕЙ +3 (SHOP)',
+    desc: '+3 Ключа за 5 монет!',
+    icon: 'meowmere_64.png',
+    costCoins: 5,
+    apply: (p) => {
+      p.keys += 3;
+    }
+  },
+  tech_x: {
+    id: 'tech_x',
+    name: 'ТЕХНОЛОГИЯ X (TECH X)',
+    desc: 'Летающие лазерные кольца! Огромная область поражения!',
+    icon: 'icon_tech_x.png',
+    cost: 0,
+    apply: (p) => {
+      p.hasTechX = true;
+      p.damage += 2.0;
+    }
+  },
+  technology: {
+    id: 'technology',
+    name: 'ТЕХНОЛОГИЯ (TECHNOLOGY)',
+    desc: 'Красный электрический лазерный луч!',
+    icon: 'icon_technology.png',
+    cost: 0,
+    apply: (p) => {
+      p.hasTechnology = true;
+      p.damage += 1.5;
+    }
+  },
+  mini_brimstone: {
+    id: 'mini_brimstone',
+    name: 'МИНИ БРИМСТОУН (АЗАЗЕЛЬ)',
+    desc: 'Заряжаемый короткий красный лазер Бримстоуна!',
+    icon: 'meowmere_64.png',
+    cost: 0,
+    apply: (p) => {
+      p.hasMiniBrimstone = true;
+    }
+  },
   sacred_heart: {
     id: 'sacred_heart',
     name: 'СВЯЩЕННОЕ СЕРДЦЕ',
     desc: 'Огромный урон + Наводящиеся слезы + Душевные сердца!',
-    icon: null,
+    icon: 'icon_godhead.png',
     cost: 0,
     apply: (p) => {
       p.damage += 4.0;
@@ -779,7 +1143,7 @@ const ITEMS_DB = {
     id: 'jupiter',
     name: 'ПЛАНЕТА ЮПИТЕР',
     desc: 'Космический ядовитый шлейф + Бешеная скорость!',
-    icon: null,
+    icon: 'icon_jupiter.png',
     cost: 0,
     apply: (p) => {
       p.speed += 1.5;
@@ -826,8 +1190,8 @@ const ITEMS_DB = {
   horns: {
     id: 'horns',
     name: 'РОГА ДЕМОНА (BRIMSTONE)',
-    desc: '+3.0 к Урону! Мощный Бримстоун выстрел!',
-    icon: null,
+    desc: '+3.0 к Урону! Заряжаемый Бримстоун-лазер!',
+    icon: 'meowmere_64.png',
     cost: 2,
     apply: (p) => {
       p.damage += 3.0;
@@ -838,7 +1202,7 @@ const ITEMS_DB = {
     id: 'magic_mushroom',
     name: 'МАГИЧЕСКИЙ ГРИБ',
     desc: 'Все характеристики повышены! Увеличение размера!',
-    icon: null,
+    icon: 'icon_magic_mushroom.png',
     cost: 0,
     apply: (p) => {
       p.damage += 2.0;
@@ -852,7 +1216,7 @@ const ITEMS_DB = {
     id: 'money_power',
     name: 'ДЕНЕЖНЫЙ МЕШОК',
     desc: 'Каждая монета увеличивает урон на +0.2!',
-    icon: null,
+    icon: 'icon_money_power.png',
     cost: 0,
     apply: (p) => {
       p.hasMoneyPower = true;
@@ -862,36 +1226,13 @@ const ITEMS_DB = {
     id: 'spoon_bender',
     name: 'ЛОЖКА-ИЗГИБАТЕЛЬ',
     desc: 'Самоповорачивающиеся наводящиеся слезы!',
-    icon: null,
+    icon: 'icon_spoon_bender.png',
     cost: 0,
     apply: (p) => {
       p.homingTears = true;
     }
   }
 };
-
-// --- GAME STATE VARIABLES ---
-let canvas, ctx, miniCtx;
-let selectedCharIdx = 0;
-let gameState = 'MENU';
-let keysHeld = {};
-let mousePos = { x: 0, y: 0, down: false };
-
-let dungeonMap = [];
-let currentRoomPos = { x: 2, y: 2 };
-let currentRoom = null;
-
-let player = null;
-let projectiles = [];
-let enemyProjectiles = [];
-let enemies = [];
-let roomObjects = [];
-let pickups = [];
-let particles = [];
-let floatingTexts = [];
-
-let roomTransition = null;
-let roomGraceTimer = 0;
 
 // --- MAP GENERATION ENGINE ---
 function generateDungeon() {
@@ -904,13 +1245,14 @@ function generateDungeon() {
   function placeRoom(x, y, type) {
     const room = {
       x, y,
-      type, // 'start', 'normal', 'item', 'sin', 'boss', 'devil', 'angel', 'planetarium'
-      cleared: type === 'start' || type === 'item' || type === 'devil' || type === 'angel' || type === 'planetarium',
+      type,
+      cleared: type === 'start' || type === 'item' || type === 'shop' || type === 'devil' || type === 'angel' || type === 'planetarium',
       visited: type === 'start',
       doors: { top: false, bottom: false, left: false, right: false },
       tiles: [],
       enemiesToSpawn: [],
       objects: [],
+      pickups: [],
       sinType: null
     };
     dungeonMap[y][x] = room;
@@ -957,7 +1299,12 @@ function generateDungeon() {
     remainItem[0].cleared = true;
   }
 
-  // Planetarium Room! (30% chance)
+  const remainShop = normalRooms.filter(r => r.type === 'normal');
+  if (remainShop.length > 0) {
+    remainShop[0].type = 'shop';
+    remainShop[0].cleared = true;
+  }
+
   const remainPlan = normalRooms.filter(r => r.type === 'normal');
   if (remainPlan.length > 0 && Math.random() < 0.35) {
     remainPlan[0].type = 'planetarium';
@@ -993,6 +1340,7 @@ function populateRoomContents(room) {
   
   if (room.type === 'start') return;
   if (room.type === 'item') return;
+  if (room.type === 'shop') return;
   if (room.type === 'planetarium') return;
 
   if (room.type === 'normal') {
@@ -1060,9 +1408,22 @@ class Player {
     this.hasMeowmere = false;
     this.hasHalo = false;
     this.hasHorns = false;
+    this.hasMiniBrimstone = false;
+    this.hasTechX = false;
+    this.hasTechnology = false;
     this.hasMoneyPower = false;
+    this.hasCookie = false;
+    this.hasGodhead = false;
+    this.hasKnife = false;
+    this.hasMagnet = false;
+    this.hasCandle = false;
+    this.hasMap = false;
     this.homingTears = false;
     this.swingTimer = 0;
+
+    this.brimstoneCharge = 0;
+    this.maxBrimstoneCharge = 45;
+    this.brimstoneDir = { x: 1, y: 0 };
 
     if (charData.item) {
       const item = ITEMS_DB[charData.item];
@@ -1074,6 +1435,12 @@ class Player {
     let dmg = this.damage;
     if (this.hasMoneyPower) {
       dmg += this.coins * 0.2;
+    }
+    if (this.hasTechnology) {
+      dmg *= 0.3;
+    }
+    if (this.hasSoyMilk) {
+      dmg *= 0.2;
     }
     return dmg;
   }
@@ -1119,27 +1486,126 @@ class Player {
       this.animFrame = 1;
     }
 
-    let shootDx = 0, shootDy = 0;
-    if (keysHeld['ArrowLeft']) shootDx = -1;
-    if (keysHeld['ArrowRight']) shootDx = 1;
-    if (keysHeld['ArrowUp']) shootDy = -1;
-    if (keysHeld['ArrowDown']) shootDy = 1;
-
-    if (mousePos.down && shootDx === 0 && shootDy === 0) {
-      const angle = Math.atan2(mousePos.y - this.y, mousePos.x - this.x);
-      shootDx = Math.cos(angle);
-      shootDy = Math.sin(angle);
+    if (this.hasMagnet) {
+      pickups.forEach(pk => {
+        if (pk.type === 'coin' || pk.type === 'heart') {
+          const d = Math.hypot(this.x - pk.x, this.y - pk.y);
+          if (d < 220) {
+            pk.x += (this.x - pk.x) * 0.08;
+            pk.y += (this.y - pk.y) * 0.08;
+          }
+        }
+      });
     }
 
-    if ((shootDx !== 0 || shootDy !== 0) && this.shootTimer <= 0) {
-      this.fireTear(shootDx, shootDy);
-      this.shootTimer = Math.max(5, Math.floor(20 / this.tearRate));
+    const shootDir = getShootDirection();
+
+    const effDmg = this.getEffectiveDamage();
+
+    // 1. CHARA'S KNIFE COMBO (2 Close Melee Slashes + Long Charge Boomerang Throw!)
+    if (this.hasKnife) {
+      this.knifeCharge = this.knifeCharge || 0;
+      this.knifeSlashes = this.knifeSlashes || 0;
+
+      if (shootDir !== null) {
+        this.knifeDir = shootDir;
+        this.knifeCharge = Math.min(75, this.knifeCharge + 1);
+
+        if (this.shootTimer <= 0 && this.knifeSlashes < 2) {
+          this.knifeSlashes++;
+          this.swingTimer = 15;
+          audio.playHit();
+
+          const sX = shootDir.x;
+          const sY = shootDir.y;
+          projectiles.push(new Projectile(
+            this.x + sX * 30, this.y + sY * 30, sX * 5, sY * 5,
+            effDmg * 1.8, 'chara_knife_proj', this.tearScale * 1.4, false, false
+          ));
+          this.shootTimer = 12;
+        }
+      } else {
+        if (this.knifeCharge > 18 && this.shootTimer <= 0) {
+          const sX = this.knifeDir ? this.knifeDir.x : 1;
+          const sY = this.knifeDir ? this.knifeDir.y : 0;
+          const chargeFrac = Math.min(1.0, (this.knifeCharge - 18) / 57);
+          const throwSpeed = 5.0 + chargeFrac * 12.0;
+          const dmgMult = 1.2 + chargeFrac * 1.8;
+
+          audio.playHit();
+
+          if (this.hasMeowmere) {
+            projectiles.push(new Projectile(
+              this.x, this.y, sX * throwSpeed, sY * throwSpeed,
+              effDmg * 2.0 * dmgMult, 'chara_knife_proj', this.tearScale * (1.3 + chargeFrac * 0.5), true, true
+            ));
+            audio.playMeow();
+          } else {
+            projectiles.push(new Projectile(
+              this.x, this.y, sX * throwSpeed, sY * throwSpeed,
+              effDmg * 1.6 * dmgMult, 'chara_knife_proj', this.tearScale * (1.1 + chargeFrac * 0.4), false, this.homingTears
+            ));
+          }
+          this.shootTimer = 22;
+        }
+        this.knifeCharge = 0;
+        this.knifeSlashes = 0;
+      }
+    }
+    // 2. CHOCOLATE MILK CHARGING
+    else if (this.hasChocMilk) {
+      this.chocCharge = this.chocCharge || 0;
+      if (shootDir !== null) {
+        this.chocDir = shootDir;
+        this.chocCharge = Math.min(55, this.chocCharge + 1);
+      } else {
+        if (this.chocCharge > 5 && this.shootTimer <= 0) {
+          const sX = this.chocDir ? this.chocDir.x : 1;
+          const sY = this.chocDir ? this.chocDir.y : 0;
+          const chargeFrac = this.chocCharge / 55;
+
+          projectiles.push(new Projectile(
+            this.x, this.y, sX * this.tearSpeed, sY * this.tearSpeed,
+            effDmg * (1.0 + chargeFrac * 2.5), 'normal', this.tearScale * (1.0 + chargeFrac * 1.2), false, this.homingTears
+          ));
+          audio.playTear();
+          this.shootTimer = 16;
+        }
+        this.chocCharge = 0;
+      }
+    }
+    // 3. BRIMSTONE WEAPONS
+    else if (this.hasMiniBrimstone || this.hasHorns || (this.hasMeowmere && this.hasHorns)) {
+      if (shootDir !== null) {
+        this.brimstoneDir = shootDir;
+        this.brimstoneCharge = Math.min(this.maxBrimstoneCharge, this.brimstoneCharge + 1.8);
+      } else {
+        if (this.brimstoneCharge >= this.maxBrimstoneCharge && this.shootTimer <= 0) {
+          const sX = this.brimstoneDir ? this.brimstoneDir.x : 1;
+          const sY = this.brimstoneDir ? this.brimstoneDir.y : 0;
+          this.fireTear(sX, sY);
+          this.shootTimer = 35;
+        }
+        this.brimstoneCharge = 0;
+      }
+    }
+    // 4. STANDARD & TECH X WEAPONS
+    else {
+      if (shootDir !== null && this.shootTimer <= 0) {
+        this.fireTear(shootDir.x, shootDir.y);
+        if (this.hasTechX) {
+          this.shootTimer = Math.max(16, Math.floor(36 / this.tearRate));
+        } else {
+          this.shootTimer = Math.max(4, Math.floor(20 / this.tearRate));
+        }
+      }
     }
 
     const nearTrapdoor = roomObjects.some(obj => obj instanceof Trapdoor && obj.playerNear && obj.activationTimer <= 0);
     const nearDevilAngel = roomObjects.some(obj => obj instanceof SpecialDoor && obj.playerNear);
     const nearReturnDoor = roomObjects.some(obj => obj instanceof ReturnDoor && obj.playerNear);
-    if ((keysHeld['ShiftLeft'] || keysHeld['ShiftRight'] || (keysHeld['KeyE'] && !nearTrapdoor && !nearDevilAngel && !nearReturnDoor)) && this.bombs > 0) {
+    const nearChest = roomObjects.some(obj => obj instanceof Chest && obj.playerNear);
+    if ((keysHeld['ShiftLeft'] || keysHeld['ShiftRight'] || (keysHeld['KeyE'] && !nearTrapdoor && !nearDevilAngel && !nearReturnDoor && !nearChest)) && this.bombs > 0) {
       if (!this.bombCooldown) {
         this.placeBomb();
         this.bombCooldown = 30;
@@ -1154,32 +1620,125 @@ class Player {
     this.swingTimer = 12;
     const effDmg = this.getEffectiveDamage();
 
-    if (this.hasMeowmere && this.hasHorns) {
+    // IPECAC ALL SYNERGIES!
+    if (this.hasIpecac) {
+      audio.playExplosion();
+
+      if (this.hasMeowmere && (this.hasHorns || this.hasMiniBrimstone)) {
+        projectiles.push(new Projectile(
+          this.x, this.y, dirX, dirY,
+          effDmg * 2.2, 'ipecac_meowmere_brimstone', this.tearScale * 1.6, true, true
+        ));
+      } else if (this.hasKnife) {
+        projectiles.push(new Projectile(
+          this.x, this.y, dirX * 8, dirY * 8,
+          effDmg * 1.8, 'ipecac_knife', this.tearScale * 1.5, false, this.homingTears
+        ));
+      } else if (this.hasTechX) {
+        projectiles.push(new Projectile(
+          this.x, this.y, dirX * 5.5, dirY * 5.5,
+          effDmg * 1.6, 'ipecac_tech_x', this.tearScale * 1.6, false, this.homingTears
+        ));
+      } else if (this.hasHorns || this.hasMiniBrimstone) {
+        projectiles.push(new Projectile(
+          this.x, this.y, dirX, dirY,
+          effDmg * 1.8, 'ipecac_brimstone', this.tearScale * 1.5, false, this.homingTears
+        ));
+      } else if (this.hasMeowmere) {
+        projectiles.push(new Projectile(
+          this.x, this.y, dirX * (this.tearSpeed + 1), dirY * (this.tearSpeed + 1),
+          effDmg * 1.6, 'ipecac_meowmere', this.tearScale * 1.4, true, true
+        ));
+      } else {
+        projectiles.push(new Projectile(
+          this.x, this.y, dirX * this.tearSpeed, dirY * this.tearSpeed,
+          effDmg * 1.6, 'ipecac_tear', this.tearScale * 1.5, false, this.homingTears
+        ));
+      }
+      return;
+    }
+
+    // CHARA'S KNIFE SYNERGIES!
+    if (this.hasKnife && (this.hasHorns || this.hasMiniBrimstone)) {
+      audio.playHit();
+      // Fan of 5 Chara Knives!
+      for (let i = -2; i <= 2; i++) {
+        const a = Math.atan2(dirY, dirX) + i * 0.22;
+        projectiles.push(new Projectile(
+          this.x, this.y, Math.cos(a) * 8, Math.sin(a) * 8,
+          effDmg * 1.6, 'chara_knife_proj', this.tearScale * 1.3, false, this.homingTears
+        ));
+      }
+    } else if (this.hasKnife && this.hasMeowmere) {
       audio.playMeow();
       projectiles.push(new Projectile(
-        this.x, this.y,
-        dirX * (this.tearSpeed + 2), dirY * (this.tearSpeed + 2),
+        this.x, this.y, dirX * 9, dirY * 9,
+        effDmg * 1.8, 'chara_knife_proj', this.tearScale * 1.4, true, true
+      ));
+    } else if (this.hasKnife) {
+      audio.playHit();
+      projectiles.push(new Projectile(
+        this.x, this.y, dirX * 8, dirY * 8,
+        effDmg * 1.5, 'chara_knife_proj', this.tearScale * 1.2, false, this.homingTears
+      ));
+    } else if (this.hasMeowmere && (this.hasHorns || this.hasMiniBrimstone)) {
+      audio.playMeow();
+      projectiles.push(new Projectile(
+        this.x, this.y, dirX, dirY,
         effDmg * 1.5, 'meowmere_brimstone', this.tearScale * 1.4, true, true
+      ));
+    } else if (this.hasTechX && this.hasMeowmere) {
+      audio.playMeow();
+      projectiles.push(new Projectile(
+        this.x, this.y, dirX * 6, dirY * 6,
+        effDmg * 1.5, 'meow_tech_x', this.tearScale * 1.4, false, this.homingTears
+      ));
+    } else if (this.hasTechX && (this.hasHorns || this.hasMiniBrimstone)) {
+      audio.playHit();
+      projectiles.push(new Projectile(
+        this.x, this.y, dirX * 6, dirY * 6,
+        effDmg * 1.6, 'brim_tech_x', this.tearScale * 1.4, false, this.homingTears
+      ));
+    } else if (this.hasTechX) {
+      audio.playHit();
+      projectiles.push(new Projectile(
+        this.x, this.y, dirX * 5.5, dirY * 5.5,
+        effDmg * 1.3, 'tech_x', this.tearScale * 1.2, false, this.homingTears
+      ));
+    } else if (this.hasTechnology && this.hasMeowmere) {
+      audio.playMeow();
+      projectiles.push(new Projectile(
+        this.x, this.y, dirX, dirY,
+        effDmg * 1.4, 'meow_tech_laser', this.tearScale, false, this.homingTears
+      ));
+    } else if (this.hasTechnology) {
+      audio.playHit();
+      projectiles.push(new Projectile(
+        this.x, this.y, dirX, dirY,
+        effDmg * 1.3, 'tech_laser', this.tearScale, false, this.homingTears
       ));
     } else if (this.hasMeowmere) {
       audio.playMeow();
       projectiles.push(new Projectile(
-        this.x, this.y,
-        dirX * (this.tearSpeed + 1), dirY * (this.tearSpeed + 1),
+        this.x, this.y, dirX * (this.tearSpeed + 1), dirY * (this.tearSpeed + 1),
         effDmg, 'meowmere', this.tearScale, true, this.homingTears
       ));
-    } else if (this.hasHorns) {
-      audio.playTear();
+    } else if (this.hasMiniBrimstone) {
+      audio.playHit();
       projectiles.push(new Projectile(
-        this.x, this.y,
-        dirX * (this.tearSpeed + 1.5), dirY * (this.tearSpeed + 1.5),
-        effDmg * 1.3, 'horns', this.tearScale * 1.2, false, this.homingTears
+        this.x, this.y, dirX, dirY,
+        effDmg * 1.2, 'mini_brimstone', this.tearScale * 1.1, false, this.homingTears
+      ));
+    } else if (this.hasHorns) {
+      audio.playHit();
+      projectiles.push(new Projectile(
+        this.x, this.y, dirX, dirY,
+        effDmg * 1.4, 'brimstone_beam', this.tearScale * 1.2, false, this.homingTears
       ));
     } else {
       audio.playTear();
       projectiles.push(new Projectile(
-        this.x, this.y,
-        dirX * this.tearSpeed, dirY * this.tearSpeed,
+        this.x, this.y, dirX * this.tearSpeed, dirY * this.tearSpeed,
         effDmg, 'normal', this.tearScale, false, this.homingTears
       ));
     }
@@ -1193,6 +1752,7 @@ class Player {
 
   checkDoorTransitions() {
     if (!currentRoom.cleared || roomTransition) return;
+    if (currentRoom.type === 'devil' || currentRoom.type === 'angel') return;
 
     const centerX = OFFSET_X + (ROOM_GRID_W * TILE_SIZE) / 2;
     const centerY = OFFSET_Y + (ROOM_GRID_H * TILE_SIZE) / 2;
@@ -1237,6 +1797,45 @@ class Player {
 
   draw(ctx) {
     if (this.invulnTimer > 0 && Math.floor(this.invulnTimer / 4) % 2 === 0) return;
+
+    if (this.brimstoneCharge > 0) {
+      ctx.save();
+      ctx.strokeStyle = '#ff0033';
+      ctx.lineWidth = 3;
+      ctx.shadowColor = '#ff0033';
+      ctx.shadowBlur = 10;
+      ctx.beginPath();
+      const pct = this.brimstoneCharge / this.maxBrimstoneCharge;
+      ctx.arc(this.x, this.y, this.radius + 10, -Math.PI/2, -Math.PI/2 + Math.PI * 2 * pct);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    if (this.knifeCharge > 0) {
+      ctx.save();
+      ctx.strokeStyle = '#ff0033';
+      ctx.lineWidth = 4;
+      ctx.shadowColor = '#ff0033';
+      ctx.shadowBlur = 12;
+      ctx.beginPath();
+      const pct = this.knifeCharge / 65;
+      ctx.arc(this.x, this.y, this.radius + 12, -Math.PI/2, -Math.PI/2 + Math.PI * 2 * pct);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    if (this.chocCharge > 0) {
+      ctx.save();
+      ctx.strokeStyle = '#8b4513';
+      ctx.lineWidth = 4;
+      ctx.shadowColor = '#8b4513';
+      ctx.shadowBlur = 12;
+      ctx.beginPath();
+      const pct = this.chocCharge / 55;
+      ctx.arc(this.x, this.y, this.radius + 12, -Math.PI/2, -Math.PI/2 + Math.PI * 2 * pct);
+      ctx.stroke();
+      ctx.restore();
+    }
 
     if (this.hasHalo) {
       ctx.save();
@@ -1304,26 +1903,189 @@ class Projectile {
     this.vx = vx;
     this.vy = vy;
     this.damage = damage;
-    this.type = type;
+    this.type = type; // 'normal', 'meowmere', 'horns', 'mini_brimstone', 'brimstone_beam', 'meowmere_brimstone', 'tech_x', 'meow_tech_x', 'brim_tech_x', 'tech_laser', 'meow_tech_laser', 'chara_knife_proj'
     this.scale = scale;
     this.radius = 8 * scale;
     this.bouncing = bouncing;
     this.bouncesLeft = bouncing ? 3 : 0;
     this.homing = homing;
-    this.life = 120;
+    
+    this.ringRadius = 24 * scale;
+    this.maxRingRadius = 55 * scale;
+
+    this.isEnemyProj = (type === 'enemy_blood' || type === 'enemy_cyan' || type === 'enemy_coin');
+
+    this.life = (type === 'mini_brimstone' || type === 'brimstone_beam' || type === 'meowmere_brimstone' || type === 'tech_laser' || type === 'meow_tech_laser') ? 28 : (type === 'chara_knife_proj' ? 45 : 140);
+    this.maxLife = this.life;
+    
     this.angle = Math.atan2(vy, vx);
+
+    const beamLength = type === 'mini_brimstone' ? 180 : 800;
+    const numSegs = 16;
+    this.segments = [];
+    for (let i = 0; i <= numSegs; i++) {
+      const frac = i / numSegs;
+      this.segments.push({
+        x: x + Math.cos(this.angle) * beamLength * frac,
+        y: y + Math.sin(this.angle) * beamLength * frac
+      });
+    }
+    this.endX = this.segments[numSegs].x;
+    this.endY = this.segments[numSegs].y;
+  }
+
+  explodeIpecac() {
+    if (this.exploded) return;
+    this.exploded = true;
+    audio.playExplosion();
+    const blastRadius = 85 * this.scale;
+    enemies.forEach(e => {
+      if (Math.hypot(e.x - this.x, e.y - this.y) < blastRadius) {
+        e.takeDamage(this.damage * 1.5);
+      }
+    });
+    for (let i = 0; i < 20; i++) {
+      particles.push(new Particle(this.x, this.y, '#22ff44', 5, 1.4));
+    }
   }
 
   update() {
-    if (this.homing && enemies.length > 0) {
+    if (this.type === 'ipecac_tear' || this.type === 'ipecac_meowmere' || this.type === 'ipecac_knife') {
+      this.x += this.vx;
+      this.y += this.vy;
+      this.life--;
+
+      if (this.type === 'ipecac_meowmere' && Math.random() < 0.4) {
+        particles.push(new Particle(this.x, this.y, '#22ff44', 4, 0.8));
+      }
+
+      enemies.forEach(e => {
+        if (!this.exploded && Math.hypot(e.x - this.x, e.y - this.y) < e.radius + this.radius + 6) {
+          this.explodeIpecac();
+          this.life = 0;
+        }
+      });
+      if (this.life <= 0 && !this.exploded) {
+        this.explodeIpecac();
+      }
+      return;
+    }
+
+    // CHARA'S KNIFE BOOMERANG PROJ!
+    if (this.type === 'chara_knife_proj') {
+      if (this.life > this.maxLife / 2) {
+        this.x += this.vx;
+        this.y += this.vy;
+      } else {
+        // Return boomerang back to player!
+        if (player) {
+          this.x += (player.x - this.x) * 0.15;
+          this.y += (player.y - this.y) * 0.15;
+        }
+      }
+      this.life--;
+
+      enemies.forEach(e => {
+        e.laserHitCooldown = e.laserHitCooldown || 0;
+        if (e.laserHitCooldown <= 0) {
+          if (Math.hypot(e.x - this.x, e.y - this.y) < e.radius + 24 * this.scale) {
+            e.takeDamage(this.damage);
+            e.laserHitCooldown = 8;
+          }
+        }
+      });
+      return;
+    }
+
+    if (this.type === 'tech_x' || this.type === 'meow_tech_x' || this.type === 'brim_tech_x') {
+      this.x += this.vx;
+      this.y += this.vy;
+      this.life--;
+      this.ringRadius = Math.min(this.maxRingRadius, this.ringRadius + 0.4);
+
+      if (this.homing && enemies.length > 0) {
+        let nearest = null;
+        let minDist = 9999;
+        enemies.forEach(e => {
+          const d = Math.hypot(e.x - this.x, e.y - this.y);
+          if (d < minDist) { minDist = d; nearest = e; }
+        });
+        if (nearest) {
+          const targetAngle = Math.atan2(nearest.y - this.y, nearest.x - this.x);
+          this.vx += Math.cos(targetAngle) * 0.4;
+          this.vy += Math.sin(targetAngle) * 0.4;
+        }
+      }
+
+      enemies.forEach(e => {
+        e.techHitCooldown = e.techHitCooldown || 0;
+        if (e.techHitCooldown <= 0) {
+          const dist = Math.hypot(e.x - this.x, e.y - this.y);
+          if (dist < this.ringRadius + e.radius) {
+            e.takeDamage(this.damage * 0.7);
+            e.techHitCooldown = 12;
+          }
+        }
+      });
+      return;
+    }
+
+    if (this.type === 'mini_brimstone' || this.type === 'brimstone_beam' || this.type === 'meowmere_brimstone' || this.type === 'tech_laser' || this.type === 'meow_tech_laser') {
+      this.life--;
+
+      if (this.homing && enemies.length > 0) {
+        let nearest = null;
+        let minDist = 9999;
+        enemies.forEach(e => {
+          const d = Math.hypot(e.x - this.x, e.y - this.y);
+          if (d < minDist) { minDist = d; nearest = e; }
+        });
+        if (nearest) {
+          for (let i = 1; i < this.segments.length; i++) {
+            const seg = this.segments[i];
+            const blend = (i / this.segments.length) * 0.15;
+            seg.x += (nearest.x - seg.x) * blend;
+            seg.y += (nearest.y - seg.y) * blend;
+          }
+        }
+      }
+
+      // MEOWMERE BRIMSTONE BOUNCING & SWORD SPAWNING!
+      if (this.type === 'meowmere_brimstone' && Math.random() < 0.3) {
+        const randSeg = this.segments[Math.floor(Math.random() * this.segments.length)];
+        const a = Math.random() * Math.PI * 2;
+        projectiles.push(new Projectile(randSeg.x, randSeg.y, Math.cos(a) * 6, Math.sin(a) * 6, this.damage * 0.8, 'meowmere', 1.0, true, true));
+      }
+
+      enemies.forEach(e => {
+        e.laserHitCooldown = e.laserHitCooldown || 0;
+        if (e.laserHitCooldown <= 0) {
+          for (let i = 0; i < this.segments.length - 1; i++) {
+            const p1 = this.segments[i];
+            const p2 = this.segments[i + 1];
+            const d = distToSegment(p1, p2, { x: e.x, y: e.y });
+            if (d < e.radius + 16 * this.scale) {
+              e.takeDamage(this.damage * 0.8);
+              e.laserHitCooldown = 10;
+              break;
+            }
+          }
+        }
+      });
+
+      if (Math.random() < 0.5) {
+        const randSeg = this.segments[Math.floor(Math.random() * this.segments.length)];
+        particles.push(new Particle(randSeg.x, randSeg.y, '#ff0033', 3));
+      }
+      return;
+    }
+
+    if (!this.isEnemyProj && this.homing && enemies.length > 0) {
       let nearest = null;
       let minDist = 9999;
       enemies.forEach(e => {
         const d = Math.hypot(e.x - this.x, e.y - this.y);
-        if (d < minDist) {
-          minDist = d;
-          nearest = e;
-        }
+        if (d < minDist) { minDist = d; nearest = e; }
       });
       if (nearest) {
         const targetAngle = Math.atan2(nearest.y - this.y, nearest.x - this.x);
@@ -1341,7 +2103,7 @@ class Projectile {
     this.y += this.vy;
     this.life--;
 
-    if ((this.type === 'meowmere' || this.type === 'meowmere_brimstone') && Math.random() < 0.6) {
+    if (this.type === 'meowmere' && Math.random() < 0.6) {
       const colors = ['#ff77cc', '#33ffff', '#ffff55', '#bb66ff', '#ff1144'];
       const col = colors[Math.floor(Math.random() * colors.length)];
       particles.push(new Particle(this.x, this.y, col, 3, 0.5));
@@ -1375,18 +2137,94 @@ class Projectile {
 
   draw(ctx) {
     ctx.save();
-    if (this.type === 'meowmere_brimstone') {
+    
+    const isRainbow = player && player.hasCookie;
+    const rainbowHue = (Date.now() / 4) % 360;
+    const rainbowColor = `hsl(${rainbowHue}, 100%, 65%)`;
+
+    if (this.type === 'ipecac_tear') {
+      ctx.fillStyle = '#22ff44';
+      ctx.shadowColor = '#22ff44';
+      ctx.shadowBlur = 18;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.radius * 1.4, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(this.x - 3, this.y - 3, this.radius * 0.5, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (this.type === 'chara_knife_proj') {
       ctx.translate(this.x, this.y);
-      ctx.rotate(this.angle + Math.PI / 4);
-      ctx.fillStyle = '#ff1144';
-      ctx.shadowColor = '#ff00aa';
+      ctx.rotate((this.maxLife - this.life) * 0.4);
+      ctx.shadowColor = '#ff0033';
+      ctx.shadowBlur = 18;
+      if (IMAGES['undertale_slash.png']) {
+        ctx.drawImage(IMAGES['undertale_slash.png'], -28 * this.scale, -28 * this.scale, 56 * this.scale, 56 * this.scale);
+      } else if (IMAGES['chara_knife.png']) {
+        ctx.drawImage(IMAGES['chara_knife.png'], -20, -20, 40 * this.scale, 40 * this.scale);
+      } else {
+        ctx.fillStyle = '#ff0033';
+        ctx.fillRect(-15, -15, 30, 30);
+      }
+    } else if (this.type === 'tech_x' || this.type === 'meow_tech_x' || this.type === 'brim_tech_x') {
+      const ringColor = isRainbow ? rainbowColor : (this.type === 'meow_tech_x' ? '#ff77d6' : (this.type === 'brim_tech_x' ? '#ff0033' : '#00e5ff'));
+      ctx.strokeStyle = ringColor;
+      ctx.lineWidth = 4 * this.scale;
+      ctx.shadowColor = ringColor;
       ctx.shadowBlur = 15;
       ctx.beginPath();
-      ctx.arc(0, 0, this.radius * 1.5, 0, Math.PI * 2);
-      ctx.fill();
-      if (IMAGES['meowmere_32.png']) {
-        ctx.drawImage(IMAGES['meowmere_32.png'], -16, -16, 32 * this.scale, 32 * this.scale);
+      ctx.arc(this.x, this.y, this.ringRadius, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 1.5 * this.scale;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.ringRadius, 0, Math.PI * 2);
+      ctx.stroke();
+
+      if (this.type === 'meow_tech_x' && IMAGES['meowmere_32.png']) {
+        ctx.drawImage(IMAGES['meowmere_32.png'], this.x - 16, this.y - 16, 32, 32);
       }
+    } else if (this.type === 'mini_brimstone' || this.type === 'brimstone_beam' || this.type === 'meowmere_brimstone' || this.type === 'tech_laser' || this.type === 'meow_tech_laser') {
+      const progress = 1 - (this.life / this.maxLife);
+      let scaleMult = 1.0;
+      let alpha = 1.0;
+
+      if (progress < 0.2) {
+        scaleMult = progress / 0.2;
+      } else if (progress > 0.65) {
+        const fade = (1 - progress) / 0.35;
+        scaleMult = Math.max(0.1, fade);
+        alpha = Math.max(0, fade);
+      }
+
+      ctx.save();
+      ctx.globalAlpha = alpha;
+
+      const mainColor = isRainbow ? rainbowColor : ((this.type === 'meowmere_brimstone' || this.type === 'meow_tech_laser') ? '#ff00aa' : '#ff0022');
+      const baseWidth = (this.type === 'meowmere_brimstone' ? 22 : 16) * this.scale * scaleMult;
+
+      ctx.strokeStyle = mainColor;
+      ctx.lineWidth = baseWidth;
+      ctx.shadowColor = mainColor;
+      ctx.shadowBlur = 22;
+      ctx.beginPath();
+      ctx.moveTo(this.segments[0].x, this.segments[0].y);
+      for (let i = 1; i < this.segments.length; i++) {
+        ctx.lineTo(this.segments[i].x, this.segments[i].y);
+      }
+      ctx.stroke();
+
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = Math.max(1, 5 * this.scale * scaleMult);
+      ctx.beginPath();
+      ctx.moveTo(this.segments[0].x, this.segments[0].y);
+      for (let i = 1; i < this.segments.length; i++) {
+        ctx.lineTo(this.segments[i].x, this.segments[i].y);
+      }
+      ctx.stroke();
+      ctx.restore();
     } else if (this.type === 'meowmere') {
       ctx.translate(this.x, this.y);
       ctx.rotate(this.angle + Math.PI / 4);
@@ -1399,7 +2237,7 @@ class Projectile {
         ctx.fill();
       }
     } else if (this.type === 'horns') {
-      ctx.fillStyle = '#cc0022';
+      ctx.fillStyle = isRainbow ? rainbowColor : '#cc0022';
       ctx.beginPath();
       ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
       ctx.fill();
@@ -1416,10 +2254,26 @@ class Projectile {
       ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
       ctx.fill();
     } else {
-      ctx.fillStyle = this.homing ? '#aa22ff' : '#44aaff';
+      if (isRainbow) {
+        ctx.fillStyle = rainbowColor;
+        ctx.shadowColor = rainbowColor;
+        ctx.shadowBlur = 10;
+      } else {
+        ctx.fillStyle = this.homing ? '#aa22ff' : '#44aaff';
+      }
       ctx.beginPath();
       ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
       ctx.fill();
+
+      if (player && player.hasGodhead && !this.isEnemyProj) {
+        ctx.strokeStyle = '#ffffaa';
+        ctx.lineWidth = 3;
+        ctx.shadowColor = '#ffff00';
+        ctx.shadowBlur = 12;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius * 2.8, 0, Math.PI * 2);
+        ctx.stroke();
+      }
     }
     ctx.restore();
   }
@@ -1438,8 +2292,8 @@ class Enemy {
     this.sheet = 'char_snake.png';
     this.isSin = false;
     this.isBoss = false;
+    this.laserHitCooldown = 0;
 
-    // ALL 14 MOBS MAPPED TO EXTRACTED SPRITE ASSETS!
     if (type === 'snake') {
       this.sheet = 'char_snake.png';
       this.speed = 1.8;
@@ -1494,6 +2348,25 @@ class Enemy {
       this.hp = 90 + currentFloorIdx * 15;
       this.maxHp = this.hp;
       this.speed = 2.5;
+    }
+    else if (type.startsWith('ram_mob_')) {
+      const num = type.replace('ram_mob_', '');
+      this.sheet = 'char_ram_' + num + '.png';
+      this.speed = 1.4;
+      this.hp = 35 + currentFloorIdx * 6;
+      this.maxHp = this.hp;
+    } else if (type.startsWith('alt1_')) {
+      const num = type.replace('alt1_', '');
+      this.sheet = 'char_alt1_' + num + '.png';
+      this.speed = 1.5;
+      this.hp = 30 + currentFloorIdx * 5;
+      this.maxHp = this.hp;
+    } else if (type.startsWith('alt2_')) {
+      const num = type.replace('alt2_', '');
+      this.sheet = 'char_alt2_' + num + '.png';
+      this.speed = 1.6;
+      this.hp = 32 + currentFloorIdx * 5;
+      this.maxHp = this.hp;
     }
     // Floor Bosses
     else if (type === 'boss_snake') {
@@ -1583,6 +2456,10 @@ class Enemy {
   update() {
     if (!player) return;
 
+    if (this.laserHitCooldown > 0) this.laserHitCooldown--;
+    if (this.knifeHitCooldown > 0) this.knifeHitCooldown--;
+    if (this.techHitCooldown > 0) this.techHitCooldown--;
+
     if (roomGraceTimer > 27) return;
 
     const angle = Math.atan2(player.y - this.y, player.x - this.x);
@@ -1600,14 +2477,14 @@ class Enemy {
       this.animFrame = (this.animFrame + 1) % 3;
     }
 
-    // Telegraphed Brimstone Enemy (Shows dotted warning sight line for 1.0s before firing!)
+    this.shootTimer++;
+
     if (this.isBrimstone) {
-      this.shootTimer++;
       if (this.shootTimer >= 40 && this.shootTimer < 80) {
-        this.aimLine = true; // TELEGRAPH AIMING LINE!
+        this.aimLine = true;
       } else if (this.shootTimer >= 80) {
         this.aimLine = false;
-        this.brimstoneBeam = true; // FIRING LASER!
+        this.brimstoneBeam = true;
         if (Math.abs(player.y - this.y) < 25 || Math.abs(player.x - this.x) < 25) {
           player.takeDamage(1);
         }
@@ -1617,31 +2494,194 @@ class Enemy {
         }
       }
     }
-    // Boss Multi-Phase Attacks!
-    else if (this.type === 'boss_mega_satan' && this.shootTimer >= 45) {
-      this.shootTimer = 0;
-      for (let i = 0; i < 10; i++) {
-        const a = (i * Math.PI) / 5;
-        enemyProjectiles.push(new Projectile(this.x, this.y, Math.cos(a) * 5, Math.sin(a) * 5, 1, 'enemy_cyan', 1.4));
+    else if (this.type === 'boss_snake') {
+      if (this.shootTimer % 40 === 0) {
+        for (let i = -1; i <= 1; i++) {
+          const a = angle + i * 0.25;
+          enemyProjectiles.push(new Projectile(this.x, this.y, Math.cos(a) * 5, Math.sin(a) * 5, 1, 'enemy_cyan'));
+        }
       }
-      if (Math.random() < 0.3) {
-        roomObjects.push(new Bomb(this.x, this.y));
+      if (this.shootTimer >= 120) {
+        this.shootTimer = 0;
+        for (let i = 0; i < 8; i++) {
+          const a = (i * Math.PI) / 4;
+          enemyProjectiles.push(new Projectile(this.x, this.y, Math.cos(a) * 4.5, Math.sin(a) * 4.5, 1, 'enemy_blood'));
+        }
       }
-    } else if (this.type === 'boss_sans' && this.shootTimer >= 50) {
-      this.shootTimer = 0;
-      for (let i = 0; i < 6; i++) {
-        const a = angle + (i - 2.5) * 0.2;
-        enemyProjectiles.push(new Projectile(this.x, this.y, Math.cos(a) * 5.5, Math.sin(a) * 5.5, 1, 'enemy_cyan'));
+    } else if (this.type === 'boss_sans') {
+      if (this.shootTimer % 35 === 0) {
+        for (let i = 0; i < 5; i++) {
+          const a = angle + (i - 2) * 0.22;
+          enemyProjectiles.push(new Projectile(this.x, this.y, Math.cos(a) * 5.5, Math.sin(a) * 5.5, 1, 'enemy_cyan'));
+        }
       }
-    } else if (this.isBoss && this.shootTimer >= 65) {
+      if (this.shootTimer >= 110) {
+        this.shootTimer = 0;
+        enemyProjectiles.push(new Projectile(this.x, this.y, Math.cos(angle) * 7, Math.sin(angle) * 7, 1, 'enemy_cyan', 1.5));
+      }
+    } else if (this.type === 'boss_clown') {
+      if (this.shootTimer % 35 === 0) {
+        for (let i = 0; i < 4; i++) {
+          const a = (i * Math.PI) / 2 + (this.animTimer * 0.1);
+          enemyProjectiles.push(new Projectile(this.x, this.y, Math.cos(a) * 4.5, Math.sin(a) * 4.5, 1, 'enemy_blood', 1.1, true));
+        }
+      }
+      if (this.shootTimer >= 105) {
+        this.shootTimer = 0;
+        for (let i = 0; i < 6; i++) {
+          const a = (i * Math.PI) / 3;
+          enemyProjectiles.push(new Projectile(this.x, this.y, Math.cos(a) * 5, Math.sin(a) * 5, 1, 'enemy_cyan'));
+        }
+      }
+    } else if (this.type === 'boss_sosal') {
+      if (this.shootTimer >= 40 && this.shootTimer < 80) {
+        this.aimLine = true;
+      } else if (this.shootTimer >= 80) {
+        this.aimLine = false;
+        this.brimstoneBeam = true;
+        if (Math.abs(player.y - this.y) < 30 || Math.abs(player.x - this.x) < 30) {
+          player.takeDamage(1);
+        }
+        if (this.shootTimer >= 110) {
+          this.shootTimer = 0;
+          this.brimstoneBeam = false;
+          for (let i = 0; i < 8; i++) {
+            const a = (i * Math.PI) / 4;
+            enemyProjectiles.push(new Projectile(this.x, this.y, Math.cos(a) * 5, Math.sin(a) * 5, 1, 'enemy_blood'));
+          }
+        }
+      }
+    } else if (this.type === 'boss_mask') {
+      if (this.shootTimer % 30 === 0) {
+        for (let i = -2; i <= 2; i++) {
+          const a = angle + i * 0.25;
+          enemyProjectiles.push(new Projectile(this.x, this.y, Math.cos(a) * 6, Math.sin(a) * 6, 1, 'enemy_cyan'));
+        }
+      }
+      if (this.shootTimer >= 90) {
+        this.shootTimer = 0;
+      }
+    } else if (this.type === 'boss_sins_duo') {
+      if (this.shootTimer % 35 === 0) {
+        for (let i = 0; i < 6; i++) {
+          const a = (i * Math.PI) / 3;
+          enemyProjectiles.push(new Projectile(this.x, this.y, Math.cos(a) * 5, Math.sin(a) * 5, 1, 'enemy_blood'));
+        }
+        if (Math.random() < 0.5) roomObjects.push(new Bomb(this.x, this.y));
+      }
+      if (this.shootTimer >= 105) {
+        this.shootTimer = 0;
+      }
+    } else if (this.type === 'boss_fly_lord') {
+      if (this.shootTimer % 35 === 0) {
+        for (let i = 0; i < 8; i++) {
+          const a = (i * Math.PI) / 4;
+          enemyProjectiles.push(new Projectile(this.x, this.y, Math.cos(a) * 4.8, Math.sin(a) * 4.8, 1, 'enemy_blood'));
+        }
+      }
+      if (this.shootTimer >= 110) {
+        this.shootTimer = 0;
+        if (enemies.length < 6) {
+          enemies.push(new Enemy(this.x + 25, this.y, 'mouse'));
+          enemies.push(new Enemy(this.x - 25, this.y, 'bunny'));
+        }
+      }
+    } else if (this.type === 'boss_satan') {
+      if (this.shootTimer % 30 === 0) {
+        for (let i = 0; i < 12; i++) {
+          const a = (i * Math.PI) / 6;
+          enemyProjectiles.push(new Projectile(this.x, this.y, Math.cos(a) * 5.2, Math.sin(a) * 5.2, 1, 'enemy_blood'));
+        }
+      }
+      if (this.shootTimer >= 90) {
+        this.shootTimer = 0;
+        for (let i = -1; i <= 1; i++) {
+          const a = angle + i * 0.3;
+          enemyProjectiles.push(new Projectile(this.x, this.y, Math.cos(a) * 7, Math.sin(a) * 7, 1, 'enemy_cyan', 1.3));
+        }
+      }
+    } else if (this.type === 'boss_mega_satan') {
+      if (this.shootTimer % 25 === 0) {
+        for (let i = 0; i < 16; i++) {
+          const a = (i * Math.PI) / 8 + (this.animTimer * 0.05);
+          enemyProjectiles.push(new Projectile(this.x, this.y, Math.cos(a) * 5.8, Math.sin(a) * 5.8, 1, 'enemy_cyan', 1.3));
+        }
+        if (Math.random() < 0.4) roomObjects.push(new Bomb(this.x, this.y));
+      }
+      if (this.shootTimer >= 100) {
+        this.shootTimer = 0;
+        for (let i = -2; i <= 2; i++) {
+          const a = angle + i * 0.2;
+          enemyProjectiles.push(new Projectile(this.x, this.y, Math.cos(a) * 7.5, Math.sin(a) * 7.5, 1, 'enemy_blood', 1.5));
+        }
+      }
+    } else if (this.type === 'sosal' && this.shootTimer >= 60) {
       this.shootTimer = 0;
-      for (let i = 0; i < 8; i++) {
-        const a = (i * Math.PI) / 4;
+      enemyProjectiles.push(new Projectile(this.x, this.y, Math.cos(angle) * 4.5, Math.sin(angle) * 4.5, 1, 'enemy_blood'));
+    } else if (this.type === 'snake' && this.shootTimer >= 45) {
+      this.shootTimer = 0;
+      for (let i = -1; i <= 1; i++) {
+        const a = angle + i * 0.22;
+        enemyProjectiles.push(new Projectile(this.x, this.y, Math.cos(a) * 4.5, Math.sin(a) * 4.5, 1, 'enemy_cyan'));
+      }
+    } else if (this.type === 'chicken' && this.shootTimer >= 40) {
+      this.shootTimer = 0;
+      for (let i = -1; i <= 1; i += 2) {
+        const a = angle + i * 0.3;
+        enemyProjectiles.push(new Projectile(this.x, this.y, Math.cos(a) * 5, Math.sin(a) * 5, 1, 'enemy_blood'));
+      }
+    } else if (this.type === 'bunny' && this.shootTimer >= 50) {
+      this.shootTimer = 0;
+      for (let i = 0; i < 4; i++) {
+        const a = (i * Math.PI) / 2;
+        enemyProjectiles.push(new Projectile(this.x, this.y, Math.cos(a) * 4, Math.sin(a) * 4, 1, 'enemy_cyan'));
+      }
+    } else if (this.type === 'mouse' && this.shootTimer >= 55) {
+      this.shootTimer = 0;
+      enemyProjectiles.push(new Projectile(this.x, this.y, Math.cos(angle) * 5.5, Math.sin(angle) * 5.5, 1, 'enemy_blood'));
+    } else if (this.type === 'builder' && this.shootTimer >= 50) {
+      this.shootTimer = 0;
+      enemyProjectiles.push(new Projectile(this.x, this.y, Math.cos(angle) * 4.5, Math.sin(angle) * 4.5, 1, 'enemy_cyan', 1.3));
+      if (Math.random() < 0.3) roomObjects.push(new Bomb(this.x, this.y));
+    } else if (this.type === 'boxer' && this.shootTimer >= 45) {
+      this.shootTimer = 0;
+      for (let i = -1; i <= 1; i++) {
+        const a = angle + i * 0.25;
+        enemyProjectiles.push(new Projectile(this.x, this.y, Math.cos(a) * 5.2, Math.sin(a) * 5.2, 1, 'enemy_blood'));
+      }
+    } else if (this.type === 'duck_mob' && this.shootTimer >= 45) {
+      this.shootTimer = 0;
+      for (let i = -2; i <= 2; i++) {
+        const a = angle + i * 0.2;
+        enemyProjectiles.push(new Projectile(this.x, this.y, Math.cos(a) * 4.8, Math.sin(a) * 4.8, 1, 'enemy_cyan'));
+      }
+    } else if (this.type === 'seven_mob' && this.shootTimer >= 50) {
+      this.shootTimer = 0;
+      for (let i = -1; i <= 1; i++) {
+        const a = angle + i * 0.25;
+        enemyProjectiles.push(new Projectile(this.x, this.y, Math.cos(a) * 4.5, Math.sin(a) * 4.5, 1, 'enemy_blood', 1.0, false, true));
+      }
+    } else if (this.type === 'angel_mob' && this.shootTimer >= 45) {
+      this.shootTimer = 0;
+      for (let i = 0; i < 4; i++) {
+        const a = (i * Math.PI) / 2;
+        enemyProjectiles.push(new Projectile(this.x, this.y, Math.cos(a) * 5, Math.sin(a) * 5, 1, 'enemy_cyan'));
+      }
+    } else if (this.type === 'sans_mob' && this.shootTimer >= 45) {
+      this.shootTimer = 0;
+      for (let i = -1; i <= 1; i++) {
+        const a = angle + i * 0.22;
+        enemyProjectiles.push(new Projectile(this.x, this.y, Math.cos(a) * 5.8, Math.sin(a) * 5.8, 1, 'enemy_cyan', 1.2));
+      }
+    } else if (this.type.startsWith('ram_mob_') && this.shootTimer >= 50) {
+      this.shootTimer = 0;
+      for (let i = -1; i <= 1; i++) {
+        const a = angle + i * 0.25;
         enemyProjectiles.push(new Projectile(this.x, this.y, Math.cos(a) * 4.5, Math.sin(a) * 4.5, 1, 'enemy_blood'));
       }
-    } else if (this.type === 'sosal' && this.shootTimer >= 100) {
+    } else if ((this.type.startsWith('alt1_') || this.type.startsWith('alt2_')) && this.shootTimer >= 55) {
       this.shootTimer = 0;
-      enemyProjectiles.push(new Projectile(this.x, this.y, Math.cos(angle) * 4, Math.sin(angle) * 4, 1, 'enemy_blood'));
+      enemyProjectiles.push(new Projectile(this.x, this.y, Math.cos(angle) * 5, Math.sin(angle) * 5, 1, 'enemy_cyan'));
     }
 
     const distP = Math.hypot(player.x - this.x, player.y - this.y);
@@ -1662,14 +2702,17 @@ class Enemy {
     if (this.hp <= 0) {
       if (this.isSin) {
         for (let i = 0; i < 3; i++) {
-          pickups.push(new Pickup(this.x + (i - 1) * 20, this.y, 'coin'));
+          const coinP = new Pickup(this.x + (i - 1) * 20, this.y, 'coin');
+          currentRoom.pickups.push(coinP);
         }
       } else {
         const rand = Math.random();
         if (rand < 0.05) {
-          pickups.push(new Pickup(this.x, this.y, 'heart'));
+          const hpP = new Pickup(this.x, this.y, 'heart');
+          currentRoom.pickups.push(hpP);
         } else if (rand < 0.25) {
-          pickups.push(new Pickup(this.x, this.y, 'coin'));
+          const cP = new Pickup(this.x, this.y, 'coin');
+          currentRoom.pickups.push(cP);
         }
       }
 
@@ -1677,18 +2720,16 @@ class Enemy {
         if (currentFloorIdx < FLOORS.length - 1) {
           const trapdoorObj = new Trapdoor(CANVAS_W / 2, CANVAS_H / 2);
           currentRoom.objects.push(trapdoorObj);
-          roomObjects.push(trapdoorObj);
           
           const p = new Pickup(CANVAS_W / 2 + 60, CANVAS_H / 2, 'pedestal_item');
           const keys = Object.keys(ITEMS_DB);
           p.itemId = keys[Math.floor(Math.random() * keys.length)];
-          pickups.push(p);
+          currentRoom.pickups.push(p);
 
           if (Math.random() < 0.5) {
             const specType = Math.random() < 0.5 ? 'devil' : 'angel';
             const doorObj = new SpecialDoor(CANVAS_W / 2 - 120, OFFSET_Y, specType);
             currentRoom.objects.push(doorObj);
-            roomObjects.push(doorObj);
           }
         } else {
           triggerVictory();
@@ -1698,7 +2739,6 @@ class Enemy {
   }
 
   draw(ctx) {
-    // Telegraph aiming sight line for Brimstone Enemy
     if (this.aimLine) {
       ctx.save();
       ctx.strokeStyle = 'rgba(255, 0, 50, 0.6)';
@@ -1711,7 +2751,6 @@ class Enemy {
       ctx.restore();
     }
 
-    // Active Brimstone Laser Beam
     if (this.brimstoneBeam) {
       ctx.save();
       ctx.strokeStyle = '#ff0022';
@@ -1777,8 +2816,9 @@ class SpecialDoor {
     this.playerNear = false;
   }
   update() {
+    if (roomGraceTimer > 40) return;
     const dist = Math.hypot(player.x - this.x, player.y - this.y);
-    this.playerNear = dist < player.radius + this.radius + 15;
+    this.playerNear = dist < player.radius + this.radius + 12;
 
     if (this.playerNear && (keysHeld['KeyE'] || keysHeld['KeyF'] || keysHeld['Space'])) {
       keysHeld['KeyE'] = false;
@@ -1816,13 +2856,14 @@ function enterSpecialRoom(type) {
   const specRoom = {
     x: parentRoom.x,
     y: parentRoom.y,
-    type: type, // 'devil' or 'angel'
+    type: type,
     cleared: true,
     visited: true,
-    doors: { bottom: true, top: false, left: false, right: false },
+    doors: { bottom: false, top: false, left: false, right: false },
     tiles: Array(ROOM_GRID_H).fill(0).map(() => Array(ROOM_GRID_W).fill(0)),
     enemiesToSpawn: [],
     objects: [],
+    pickups: [],
     parentBossRoom: parentRoom
   };
 
@@ -1830,41 +2871,40 @@ function enterSpecialRoom(type) {
   enemies = [];
   projectiles = [];
   enemyProjectiles = [];
-  pickups = [];
-  roomObjects = [];
+  pickups = specRoom.pickups;
+  roomObjects = specRoom.objects;
 
   const retDoor = new ReturnDoor(CANVAS_W / 2, OFFSET_Y + (ROOM_GRID_H - 1) * TILE_SIZE, parentRoom);
   specRoom.objects.push(retDoor);
-  roomObjects.push(retDoor);
 
   if (type === 'devil') {
     showItemBanner('СДЕЛКА С ДЬЯВОЛОМ!', 'Нажмите E чтобы отдать 2 Сердца за предмет!', RAW_ASSETS['meowmere_64.png']);
     
     const p1 = new Pickup(CANVAS_W / 2 - 80, CANVAS_H / 2, 'pedestal_item');
-    p1.itemId = 'horns';
+    p1.itemId = 'chara_knife';
     p1.cost = 2;
-    pickups.push(p1);
+    specRoom.pickups.push(p1);
 
     const p2 = new Pickup(CANVAS_W / 2 + 80, CANVAS_H / 2, 'pedestal_item');
-    p2.itemId = 'polyphemus';
+    p2.itemId = 'tech_x';
     p2.cost = 2;
-    pickups.push(p2);
+    specRoom.pickups.push(p2);
   } else {
     showItemBanner('АНГЕЛЬСКАЯ КОМНАТА!', 'Благословение Ангела — Нажмите E чтобы взять!', RAW_ASSETS['meowmere_64.png']);
     
     const p1 = new Pickup(CANVAS_W / 2 - 80, CANVAS_H / 2, 'pedestal_item');
     p1.itemId = 'sacred_heart';
     p1.cost = 0;
-    pickups.push(p1);
+    specRoom.pickups.push(p1);
 
     const p2 = new Pickup(CANVAS_W / 2 + 80, CANVAS_H / 2, 'pedestal_item');
-    p2.itemId = 'halo';
+    p2.itemId = 'godhead';
     p2.cost = 0;
-    pickups.push(p2);
+    specRoom.pickups.push(p2);
   }
 
   player.x = CANVAS_W / 2;
-  player.y = OFFSET_Y + (ROOM_GRID_H - 1.5) * TILE_SIZE;
+  player.y = OFFSET_Y + (ROOM_GRID_H - 2.8) * TILE_SIZE;
 }
 
 class ReturnDoor {
@@ -1876,18 +2916,21 @@ class ReturnDoor {
     this.playerNear = false;
   }
   update() {
+    if (roomGraceTimer > 40) return;
     const dist = Math.hypot(player.x - this.x, player.y - this.y);
-    this.playerNear = dist < player.radius + this.radius + 15;
+    this.playerNear = dist < player.radius + this.radius + 12;
 
     if (this.playerNear && (keysHeld['KeyE'] || keysHeld['KeyF'] || keysHeld['Space'])) {
       keysHeld['KeyE'] = false;
       keysHeld['KeyF'] = false;
       keysHeld['Space'] = false;
       
+      currentRoomPos.x = this.parentRoom.x;
+      currentRoomPos.y = this.parentRoom.y;
       currentRoom = this.parentRoom;
       enterRoom();
       player.x = CANVAS_W / 2;
-      player.y = OFFSET_Y + 1.5 * TILE_SIZE;
+      player.y = OFFSET_Y + 2.5 * TILE_SIZE;
     }
   }
   draw(ctx) {
@@ -1953,6 +2996,230 @@ class Trapdoor {
   }
 }
 
+// --- LOCKED GOLD CHEST CLASS ---
+class Chest {
+  constructor(x, y) {
+    this.x = x;
+    this.y = y;
+    this.radius = 20;
+    this.opened = false;
+    this.playerNear = false;
+  }
+  update() {
+    if (this.opened || !player) return;
+
+    const dist = Math.hypot(player.x - this.x, player.y - this.y);
+    this.playerNear = dist < player.radius + this.radius + 12;
+
+    if (this.playerNear && (keysHeld['KeyE'] || keysHeld['KeyF'] || keysHeld['Space'])) {
+      if (player.keys >= 1) {
+        player.keys--;
+        this.opened = true;
+        audio.playExplosion();
+
+        for (let i = 0; i < 3; i++) {
+          const coinP = new Pickup(this.x + (i - 1) * 22, this.y + 15, 'coin');
+          currentRoom.pickups.push(coinP);
+        }
+        const heartP = new Pickup(this.x - 15, this.y - 15, 'heart');
+        currentRoom.pickups.push(heartP);
+
+        if (Math.random() < 0.35) {
+          const p = new Pickup(this.x, this.y - 30, 'pedestal_item');
+          const keys = Object.keys(ITEMS_DB);
+          p.itemId = keys[Math.floor(Math.random() * keys.length)];
+          currentRoom.pickups.push(p);
+        }
+
+        keysHeld['KeyE'] = false;
+        keysHeld['KeyF'] = false;
+        keysHeld['Space'] = false;
+      } else {
+        floatingTexts.push(new FloatingText(this.x, this.y - 20, 'НУЖЕН КЛЮЧ! 🔑', '#ffde59'));
+        keysHeld['KeyE'] = false;
+        keysHeld['KeyF'] = false;
+        keysHeld['Space'] = false;
+      }
+    }
+  }
+  draw(ctx) {
+    if (this.opened) {
+      ctx.fillStyle = '#4a3818';
+      ctx.fillRect(this.x - 18, this.y - 12, 36, 24);
+      ctx.fillStyle = '#222';
+      ctx.fillRect(this.x - 14, this.y - 10, 28, 12);
+      return;
+    }
+
+    ctx.fillStyle = '#ffaa00';
+    ctx.fillRect(this.x - 18, this.y - 14, 36, 28);
+    ctx.strokeStyle = '#ffff55';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(this.x - 18, this.y - 14, 36, 28);
+
+    ctx.fillStyle = '#000';
+    ctx.fillRect(this.x - 4, this.y - 2, 8, 8);
+
+    if (this.playerNear) {
+      ctx.fillStyle = '#00ffff';
+      ctx.font = 'bold 11px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('[ ОТКРЫТЬ СУНДУК (1 🔑) ]', this.x, this.y - 22);
+    }
+  }
+}
+
+// --- BLOOD DONATION MACHINE CLASS ---
+class BloodMachine {
+  constructor(x, y) {
+    this.x = x;
+    this.y = y;
+    this.radius = 22;
+    this.playerNear = false;
+    this.donations = 0;
+    this.broken = false;
+  }
+  update() {
+    if (this.broken || !player) return;
+    const dist = Math.hypot(player.x - this.x, player.y - this.y);
+    this.playerNear = dist < player.radius + this.radius + 12;
+
+    if (this.playerNear && (keysHeld['KeyE'] || keysHeld['KeyF'] || keysHeld['Space'])) {
+      keysHeld['KeyE'] = false;
+      keysHeld['KeyF'] = false;
+      keysHeld['Space'] = false;
+
+      if (player.hp > 1) {
+        player.hp -= 1;
+        this.donations++;
+        audio.playHit();
+        floatingTexts.push(new FloatingText(this.x, this.y - 20, '-0.5 ❤️', '#ff2222'));
+
+        const numCoins = 1 + Math.floor(Math.random() * 3);
+        for (let i = 0; i < numCoins; i++) {
+          const coinP = new Pickup(this.x + (i - 1) * 20, this.y + 20, 'coin');
+          currentRoom.pickups.push(coinP);
+        }
+
+        if (this.donations >= 4 && Math.random() < 0.4) {
+          this.broken = true;
+          audio.playExplosion();
+          floatingTexts.push(new FloatingText(this.x, this.y - 20, 'АВТОМАТ ВЗОРВАЛСЯ! 💥', '#ffaa00'));
+          const p = new Pickup(this.x, this.y, 'pedestal_item');
+          const keys = Object.keys(ITEMS_DB);
+          p.itemId = keys[Math.floor(Math.random() * keys.length)];
+          currentRoom.pickups.push(p);
+        }
+      } else {
+        floatingTexts.push(new FloatingText(this.x, this.y - 20, 'МАЛО ЗДОРОВЬЯ!', '#ff2222'));
+      }
+    }
+  }
+  draw(ctx) {
+    ctx.save();
+    if (this.broken) {
+      ctx.fillStyle = '#331111';
+      ctx.fillRect(this.x - 16, this.y - 16, 32, 32);
+      ctx.restore();
+      return;
+    }
+
+    ctx.fillStyle = '#cc1122';
+    ctx.fillRect(this.x - 18, this.y - 24, 36, 48);
+    ctx.strokeStyle = '#ff3344';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(this.x - 18, this.y - 24, 36, 48);
+
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 16px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('🩸', this.x, this.y - 4);
+
+    if (this.playerNear) {
+      ctx.fillStyle = '#ff3344';
+      ctx.font = 'bold 11px monospace';
+      ctx.fillText('[ СДАТЬ КРОВЬ (E) ]', this.x, this.y - 32);
+    }
+    ctx.restore();
+  }
+}
+
+// --- BEGGAR CLASS ---
+class Beggar {
+  constructor(x, y) {
+    this.x = x;
+    this.y = y;
+    this.radius = 22;
+    this.playerNear = false;
+    this.coinsPaid = 0;
+    this.satisfied = false;
+  }
+  update() {
+    if (this.satisfied || !player) return;
+    const dist = Math.hypot(player.x - this.x, player.y - this.y);
+    this.playerNear = dist < player.radius + this.radius + 12;
+
+    if (this.playerNear && (keysHeld['KeyE'] || keysHeld['KeyF'] || keysHeld['Space'])) {
+      keysHeld['KeyE'] = false;
+      keysHeld['KeyF'] = false;
+      keysHeld['Space'] = false;
+
+      if (player.coins >= 1) {
+        player.coins--;
+        this.coinsPaid++;
+        audio.playPickup();
+        floatingTexts.push(new FloatingText(this.x, this.y - 20, '-1 🪙', '#ffcc00'));
+
+        if (this.coinsPaid >= 3 && Math.random() < 0.4) {
+          this.satisfied = true;
+          audio.playItemFanfare();
+          floatingTexts.push(new FloatingText(this.x, this.y - 20, 'СПАСИБО! 🎁', '#00ffcc'));
+
+          const p = new Pickup(this.x, this.y, 'pedestal_item');
+          const keys = Object.keys(ITEMS_DB);
+          p.itemId = keys[Math.floor(Math.random() * keys.length)];
+          currentRoom.pickups.push(p);
+        } else {
+          const types = ['heart', 'bomb', 'key', 'coin'];
+          const rewardType = types[Math.floor(Math.random() * types.length)];
+          currentRoom.pickups.push(new Pickup(this.x + 15, this.y + 15, rewardType));
+        }
+      } else {
+        floatingTexts.push(new FloatingText(this.x, this.y - 20, 'НЕТ МОНЕТ! 🪙', '#ffcc00'));
+      }
+    }
+  }
+  draw(ctx) {
+    ctx.save();
+    if (this.satisfied) {
+      ctx.fillStyle = '#22cc88';
+      ctx.font = '22px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('😊', this.x, this.y + 6);
+      ctx.restore();
+      return;
+    }
+
+    const img = IMAGES['char_alt1_6.png'];
+    if (img) {
+      ctx.drawImage(img, 0, 0, 32, 32, this.x - 20, this.y - 20, 40, 40);
+    } else {
+      ctx.fillStyle = '#aaaaaa';
+      ctx.font = '22px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('🥺', this.x, this.y + 6);
+    }
+
+    if (this.playerNear) {
+      ctx.fillStyle = '#ffde59';
+      ctx.font = 'bold 11px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('[ ПОДАТЬ ПОПРОШАЙКЕ (E) ]', this.x, this.y - 28);
+    }
+    ctx.restore();
+  }
+}
+
 // --- BOMB CLASS ---
 class Bomb {
   constructor(x, y) {
@@ -2006,6 +3273,7 @@ class Pickup {
     this.radius = 14;
     this.itemId = null;
     this.cost = 0;
+    this.costCoins = 0;
     this.playerNear = false;
   }
   update() {
@@ -2013,7 +3281,7 @@ class Pickup {
     const dist = Math.hypot(player.x - this.x, player.y - this.y);
     this.playerNear = dist < player.radius + this.radius + 10;
 
-    if (this.playerNear && (this.type === 'coin' || this.type === 'heart')) {
+    if (this.playerNear && (this.type === 'coin' || this.type === 'heart' || this.type === 'bomb' || this.type === 'key')) {
       if (this.type === 'coin') {
         player.coins++;
         audio.playPickup();
@@ -2024,9 +3292,37 @@ class Pickup {
           audio.playPickup();
           return true;
         }
+      } else if (this.type === 'bomb') {
+        player.bombs++;
+        audio.playPickup();
+        return true;
+      } else if (this.type === 'key') {
+        player.keys++;
+        audio.playPickup();
+        return true;
       }
     } else if (this.playerNear && this.type === 'pedestal_item' && (keysHeld['KeyE'] || keysHeld['KeyF'] || keysHeld['Space'])) {
-      if (this.cost > 0) {
+      if (this.costCoins > 0) {
+        if (player.coins >= this.costCoins) {
+          player.coins -= this.costCoins;
+          const item = ITEMS_DB[this.itemId];
+          if (item) {
+            item.apply(player);
+            const icon = item.icon ? RAW_ASSETS[item.icon] : RAW_ASSETS['meowmere_64.png'];
+            showItemBanner(item.name, item.desc, icon);
+          }
+          keysHeld['KeyE'] = false;
+          keysHeld['KeyF'] = false;
+          keysHeld['Space'] = false;
+          return true;
+        } else {
+          floatingTexts.push(new FloatingText(this.x, this.y - 20, 'НЕДОСТАТОЧНО МОНЕТ!', '#ffde59'));
+          keysHeld['KeyE'] = false;
+          keysHeld['KeyF'] = false;
+          keysHeld['Space'] = false;
+        }
+      }
+      else if (this.cost > 0) {
         const totalHp = player.hp + player.soulHp;
         const requiredHp = this.cost * 2;
 
@@ -2097,21 +3393,42 @@ class Pickup {
       ctx.lineTo(this.x + 9, this.y);
       ctx.lineTo(this.x, this.y + 9);
       ctx.fill();
+    } else if (this.type === 'bomb') {
+      ctx.fillStyle = '#222222';
+      ctx.beginPath();
+      ctx.arc(this.x, this.y + 2, 9, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#ffaa00';
+      ctx.fillRect(this.x - 1, this.y - 8, 2, 4);
+    } else if (this.type === 'key') {
+      ctx.fillStyle = '#ffcc00';
+      ctx.font = '14px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('🔑', this.x, this.y + 4);
     } else if (this.type === 'pedestal_item') {
       ctx.fillStyle = '#5a3d5c';
       ctx.fillRect(this.x - 20, this.y + 10, 40, 16);
+      ctx.fillStyle = '#3a2542';
+      ctx.fillRect(this.x - 24, this.y + 22, 48, 8);
 
-      if (this.itemId === 'meowmere' && IMAGES['meowmere_64.png']) {
-        const floatY = Math.sin(Date.now() / 200) * 6;
+      const floatY = Math.sin(Date.now() / 200) * 6;
+      const item = ITEMS_DB[this.itemId];
+      const iconKey = item ? item.icon : null;
+
+      if (iconKey && IMAGES[iconKey]) {
+        ctx.drawImage(IMAGES[iconKey], this.x - 24, this.y - 30 + floatY, 48, 48);
+      } else if (iconKey && RAW_ASSETS[iconKey]) {
+        ctx.drawImage(IMAGES[iconKey] || IMAGES['meowmere_64.png'], this.x - 24, this.y - 30 + floatY, 48, 48);
+      } else if (IMAGES['meowmere_64.png']) {
         ctx.drawImage(IMAGES['meowmere_64.png'], this.x - 24, this.y - 30 + floatY, 48, 48);
-      } else {
-        ctx.fillStyle = '#ff77cc';
-        ctx.font = '18px monospace';
-        ctx.fillText('🎁', this.x - 10, this.y - 5);
       }
 
       ctx.textAlign = 'center';
-      if (this.cost > 0) {
+      if (this.costCoins > 0) {
+        ctx.fillStyle = '#ffde59';
+        ctx.font = 'bold 11px monospace';
+        ctx.fillText('ЦЕНА: 🪙 ' + this.costCoins, this.x, this.y + 38);
+      } else if (this.cost > 0) {
         ctx.fillStyle = '#ff2255';
         ctx.font = 'bold 11px monospace';
         ctx.fillText('ЦЕНА: ❤️❤️ (2 СЕРДЦА)', this.x, this.y + 38);
@@ -2200,10 +3517,15 @@ function enterRoom() {
   pickups = [];
   
   currentRoom.objects = currentRoom.objects || [];
-  roomObjects = [...currentRoom.objects];
+  roomObjects = currentRoom.objects;
+
+  currentRoom.pickups = currentRoom.pickups || [];
+  pickups = currentRoom.pickups;
 
   roomGraceTimer = 72;
   player.invulnTimer = 72;
+
+  audio.setTrackType(currentRoom.type);
 
   if (!currentRoom.cleared && currentRoom.enemiesToSpawn.length > 0) {
     currentRoom.enemiesToSpawn.forEach(etype => {
@@ -2227,15 +3549,37 @@ function enterRoom() {
     const p = new Pickup(CANVAS_W / 2, CANVAS_H / 2, 'pedestal_item');
     const itemKeys = Object.keys(ITEMS_DB);
     p.itemId = itemKeys[Math.floor(Math.random() * itemKeys.length)];
-    pickups.push(p);
+    currentRoom.pickups.push(p);
+  }
+
+  if (currentRoom.type === 'shop' && !currentRoom.itemSpawned) {
+    currentRoom.itemSpawned = true;
+    
+    const p1 = new Pickup(CANVAS_W / 2 - 100, CANVAS_H / 2, 'pedestal_item');
+    const shopExclusives = ['holy_candle', 'treasure_map', 'coin_magnet'];
+    p1.itemId = shopExclusives[Math.floor(Math.random() * shopExclusives.length)];
+    p1.costCoins = 15;
+    currentRoom.pickups.push(p1);
+
+    const p2 = new Pickup(CANVAS_W / 2, CANVAS_H / 2, 'pedestal_item');
+    p2.itemId = 'shop_heart';
+    p2.costCoins = 5;
+    currentRoom.pickups.push(p2);
+
+    const p3 = new Pickup(CANVAS_W / 2 + 100, CANVAS_H / 2, 'pedestal_item');
+    p3.itemId = Math.random() < 0.5 ? 'shop_bombs' : 'shop_keys';
+    p3.costCoins = 5;
+    currentRoom.pickups.push(p3);
+
+    showItemBanner('МАГАЗИН!', 'Нажмите E чтобы купить товары за монеты 🪙!', RAW_ASSETS['meowmere_64.png']);
   }
 
   if (currentRoom.type === 'planetarium' && !currentRoom.itemSpawned) {
     currentRoom.itemSpawned = true;
     const p = new Pickup(CANVAS_W / 2, CANVAS_H / 2, 'pedestal_item');
-    const planItems = ['jupiter', 'the_sun', 'spoon_bender'];
+    const planItems = ['jupiter', 'the_sun', 'spoon_bender', 'playdough_cookie', 'godhead', 'chara_knife'];
     p.itemId = planItems[Math.floor(Math.random() * planItems.length)];
-    pickups.push(p);
+    currentRoom.pickups.push(p);
     showItemBanner('ПЛАНЕТАРИЙ!', 'Космический зал созвездий!', RAW_ASSETS['meowmere_64.png']);
   }
 }
@@ -2317,6 +3661,8 @@ function drawMinimap() {
           miniCtx.fillStyle = '#22cc66';
         } else if (room.type === 'item') {
           miniCtx.fillStyle = '#ff44aa';
+        } else if (room.type === 'shop') {
+          miniCtx.fillStyle = '#ffde59';
         } else if (room.type === 'planetarium') {
           miniCtx.fillStyle = '#00e5ff';
         } else if (room.type === 'sin') {
@@ -2341,6 +3687,7 @@ function drawMinimap() {
         miniCtx.textAlign = 'center';
         if (room.type === 'start') miniCtx.fillText('🏠', x + cellSize/2, y + 11);
         else if (room.type === 'item') miniCtx.fillText('🎁', x + cellSize/2, y + 11);
+        else if (room.type === 'shop') miniCtx.fillText('🛒', x + cellSize/2, y + 11);
         else if (room.type === 'planetarium') miniCtx.fillText('🪐', x + cellSize/2, y + 11);
         else if (room.type === 'sin') miniCtx.fillText('😈', x + cellSize/2, y + 11);
         else if (room.type === 'boss') miniCtx.fillText('👑', x + cellSize/2, y + 11);
@@ -2378,6 +3725,12 @@ function gameLoop() {
 function update() {
   if (!player) return;
 
+  if (currentRoom && currentRoom.type === 'boss' && !currentRoom.cleared && enemies.length > 0) {
+    audio.setTrackType('boss_battle');
+  } else if (currentRoom) {
+    audio.setTrackType(currentRoom.type);
+  }
+
   if (roomTransition) {
     roomTransition.progress += 0.08;
     if (roomTransition.progress >= 1) {
@@ -2403,6 +3756,26 @@ function update() {
   if (enemies.length === 0 && !currentRoom.cleared) {
     currentRoom.cleared = true;
     audio.playPickup();
+
+    const randReward = Math.random();
+    if (randReward < 0.20) {
+      const hP = new Pickup(CANVAS_W / 2 - 40, CANVAS_H / 2, 'heart');
+      currentRoom.pickups.push(hP);
+    } else if (randReward < 0.40) {
+      const cP = new Pickup(CANVAS_W / 2 - 15, CANVAS_H / 2, 'coin');
+      currentRoom.pickups.push(cP);
+    } else if (randReward < 0.55) {
+      const bP = new Pickup(CANVAS_W / 2 + 15, CANVAS_H / 2, 'bomb');
+      currentRoom.pickups.push(bP);
+    } else if (randReward < 0.70) {
+      const kP = new Pickup(CANVAS_W / 2 + 40, CANVAS_H / 2, 'key');
+      currentRoom.pickups.push(kP);
+    }
+
+    if (Math.random() < 0.15 && currentRoom.type !== 'start' && currentRoom.type !== 'boss') {
+      const chestObj = new Chest(CANVAS_W / 2, CANVAS_H / 2);
+      currentRoom.objects.push(chestObj);
+    }
   }
 
   player.update();
@@ -2412,9 +3785,25 @@ function update() {
     p.update();
 
     enemies.forEach(e => {
+      e.knifeHitCooldown = e.knifeHitCooldown || 0;
       if (Math.hypot(e.x - p.x, e.y - p.y) < e.radius + p.radius) {
-        e.takeDamage(p.damage);
-        p.life = 0;
+        if (p.type.includes('knife')) {
+          if (e.knifeHitCooldown <= 0) {
+            e.takeDamage(p.damage);
+            e.knifeHitCooldown = 12;
+
+            if (player && player.hasMeowmere && Math.random() < 0.6) {
+              const a = Math.random() * Math.PI * 2;
+              projectiles.push(new Projectile(e.x, e.y, Math.cos(a) * 7, Math.sin(a) * 7, p.damage * 0.7, 'meowmere', 1.0, true, true));
+              audio.playMeow();
+            }
+          }
+        } else if (p.type.includes('tech') || p.type.includes('brimstone')) {
+          // Continuous laser / ring weapons handle hit cooldowns in Projectile.update()
+        } else {
+          e.takeDamage(p.damage);
+          p.life = 0;
+        }
       }
     });
 
@@ -2439,6 +3828,27 @@ function update() {
     if (e.hp <= 0) enemies.splice(i, 1);
   }
 
+  // MOB-TO-MOB COLLISION SEPARATION (Prevent mobs from stacking on top of each other!)
+  for (let i = 0; i < enemies.length; i++) {
+    for (let j = i + 1; j < enemies.length; j++) {
+      const e1 = enemies[i];
+      const e2 = enemies[j];
+      const dx = e2.x - e1.x;
+      const dy = e2.y - e1.y;
+      const dist = Math.hypot(dx, dy);
+      const minDist = e1.radius + e2.radius;
+      if (dist < minDist && dist > 0) {
+        const overlap = (minDist - dist) * 0.5;
+        const nx = dx / dist;
+        const ny = dy / dist;
+        e1.x -= nx * overlap;
+        e1.y -= ny * overlap;
+        e2.x += nx * overlap;
+        e2.y += ny * overlap;
+      }
+    }
+  }
+
   for (let i = roomObjects.length - 1; i >= 0; i--) {
     const obj = roomObjects[i];
     obj.update();
@@ -2448,6 +3858,8 @@ function update() {
   for (let i = pickups.length - 1; i >= 0; i--) {
     const pk = pickups[i];
     if (pk.update()) {
+      const idxInRoom = currentRoom.pickups.indexOf(pk);
+      if (idxInRoom >= 0) currentRoom.pickups.splice(idxInRoom, 1);
       pickups.splice(i, 1);
     }
   }
@@ -2480,10 +3892,10 @@ function render() {
 
   const floor = FLOORS[currentFloorIdx];
 
-  ctx.fillStyle = currentRoom.type === 'devil' ? '#180308' : (currentRoom.type === 'angel' ? '#252233' : (currentRoom.type === 'planetarium' ? '#09152b' : (floor.wallColor || '#1c1322')));
+  ctx.fillStyle = currentRoom.type === 'devil' ? '#180308' : (currentRoom.type === 'angel' ? '#252233' : (currentRoom.type === 'shop' ? '#2e2612' : (currentRoom.type === 'planetarium' ? '#09152b' : (floor.wallColor || '#1c1322'))));
   ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
 
-  ctx.fillStyle = currentRoom.type === 'devil' ? '#3d0812' : (currentRoom.type === 'angel' ? '#4a4266' : (currentRoom.type === 'planetarium' ? '#12254a' : (floor.bgTile || '#2d1e36')));
+  ctx.fillStyle = currentRoom.type === 'devil' ? '#3d0812' : (currentRoom.type === 'angel' ? '#4a4266' : (currentRoom.type === 'shop' ? '#45381a' : (currentRoom.type === 'planetarium' ? '#12254a' : (floor.bgTile || '#2d1e36'))));
   ctx.fillRect(OFFSET_X, OFFSET_Y, ROOM_GRID_W * TILE_SIZE, ROOM_GRID_H * TILE_SIZE);
 
   ctx.strokeStyle = '#3d2846';
@@ -2501,7 +3913,6 @@ function render() {
     ctx.stroke();
   }
 
-  // Draw Fiery GIF Shrine in Devil Room!
   if (currentRoom.type === 'devil' && IMAGES['gif_devil.gif']) {
     ctx.drawImage(IMAGES['gif_devil.gif'], CANVAS_W / 2 - 75, OFFSET_Y + 15, 150, 100);
   }
@@ -2514,6 +3925,7 @@ function render() {
   let roomLabel = '⚔️ КОМНАТА БОЯ';
   if (currentRoom.type === 'start') roomLabel = '🏠 СТАРТОВАЯ КОМНАТА (БЕЗОПАСНО)';
   else if (currentRoom.type === 'item') roomLabel = '🎁 КОМНАТА СОКРОВИЩ';
+  else if (currentRoom.type === 'shop') roomLabel = '🛒 МАГАЗИН ТОВАРОВ';
   else if (currentRoom.type === 'planetarium') roomLabel = '🪐 ПЛАНЕТАРИЙ';
   else if (currentRoom.type === 'sin') roomLabel = '😈 КОМНАТА СМЕРТНОГО ГРЕХА';
   else if (currentRoom.type === 'boss') roomLabel = '👑 КОМНАТА БОССА';
@@ -2610,6 +4022,10 @@ function startGame() {
 
   if (charData.item === 'meowmere') {
     showItemBanner('МЯУМУР (MEOWMERE)', 'Радужный артефакт активирован!', RAW_ASSETS['meowmere_64.png']);
+  } else if (charData.item === 'mini_brimstone') {
+    showItemBanner('ДЕМОН SOSAL (АЗАЗЕЛЬ)', 'Заряжаемый Бримстоун-лазер активирован!', RAW_ASSETS['meowmere_64.png']);
+  } else if (charData.item === 'magic_mushroom') {
+    showItemBanner('БОКСЁР-ЧЕМПИОН!', 'Магический Гриб активирован!', RAW_ASSETS['meowmere_64.png']);
   }
 }
 
@@ -2634,30 +4050,61 @@ window.onload = () => {
   const miniCanvas = document.getElementById('minimap-canvas');
   miniCtx = miniCanvas.getContext('2d');
 
+  // Auto unlock Web Audio API on first user interaction
+  const unlockAudio = () => {
+    audio.init();
+    document.removeEventListener('click', unlockAudio);
+    document.removeEventListener('touchstart', unlockAudio);
+  };
+  document.addEventListener('click', unlockAudio, { once: true });
+  document.addEventListener('touchstart', unlockAudio, { once: true });
+
+  if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
+    const tc = document.querySelector('.touch-controls');
+    if (tc) tc.style.display = 'flex';
+  }
+
+  // CLEAN DOM CHARACTER SELECTION MENU WITH NO INNERHTML DESTRUCTION!
   const charGrid = document.getElementById('char-select-grid');
+  charGrid.innerHTML = '';
   CHARACTERS.forEach((char, idx) => {
     const card = document.createElement('div');
     card.className = 'char-card' + (idx === selectedCharIdx ? ' selected' : '');
-    card.onclick = () => {
+    card.addEventListener('click', (e) => {
+      e.stopPropagation();
       document.querySelectorAll('.char-card').forEach(c => c.classList.remove('selected'));
       card.classList.add('selected');
       selectedCharIdx = idx;
-    };
+    });
 
-    let imgStyle = 'object-fit: contain;';
-    if (!char.isSinImg) {
-      imgStyle = 'object-fit: none; object-position: 0 0;';
-    }
+    const portraitDiv = document.createElement('div');
+    portraitDiv.className = 'char-portrait';
 
-    card.innerHTML = `
-      <img src="${RAW_ASSETS[char.sheet]}" style="${imgStyle}" alt="${char.name}">
-      <div class="char-name">${char.name}</div>
-      <div class="char-desc">${char.desc}</div>
-    `;
+    const portraitImg = document.createElement('img');
+    portraitImg.src = RAW_ASSETS[char.sheet];
+    portraitImg.className = char.isSinImg ? 'sin-portrait' : 'sheet-portrait';
+
+    portraitDiv.appendChild(portraitImg);
+
+    const nameDiv = document.createElement('div');
+    nameDiv.className = 'char-name';
+    nameDiv.innerText = char.name;
+
+    const descDiv = document.createElement('div');
+    descDiv.className = 'char-desc';
+    descDiv.innerText = char.desc;
+
+    card.appendChild(portraitDiv);
+    card.appendChild(nameDiv);
+    card.appendChild(descDiv);
+
     charGrid.appendChild(card);
   });
 
-  document.getElementById('btn-start-game').onclick = startGame;
+  document.getElementById('btn-start-game').onclick = (e) => {
+    e.preventDefault();
+    startGame();
+  };
   document.getElementById('btn-restart').onclick = startGame;
   document.getElementById('btn-victory-restart').onclick = startGame;
 
@@ -2677,27 +4124,62 @@ window.onload = () => {
   };
 
   // TOUCH CONTROLS BINDINGS FOR MOBILE
-  function bindTouch(elementId, keyCode) {
+  function bindTouch(elementId, fnPress, fnRelease) {
     const el = document.getElementById(elementId);
     if (!el) return;
-    const press = (e) => { e.preventDefault(); keysHeld[keyCode] = true; };
-    const release = (e) => { e.preventDefault(); keysHeld[keyCode] = false; };
-    el.addEventListener('touchstart', press);
-    el.addEventListener('touchend', release);
-    el.addEventListener('mousedown', press);
-    el.addEventListener('mouseup', release);
+
+    let isTouched = false;
+
+    el.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      isTouched = true;
+      fnPress();
+    }, { passive: false });
+
+    el.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      isTouched = false;
+      fnRelease();
+    }, { passive: false });
+
+    el.addEventListener('mousedown', (e) => {
+      if (isTouched) return;
+      e.preventDefault();
+      fnPress();
+    });
+
+    el.addEventListener('mouseup', (e) => {
+      if (isTouched) return;
+      e.preventDefault();
+      fnRelease();
+    });
   }
 
-  bindTouch('tb-w', 'KeyW');
-  bindTouch('tb-a', 'KeyA');
-  bindTouch('tb-s', 'KeyS');
-  bindTouch('tb-d', 'KeyD');
-  bindTouch('tb-e', 'KeyE');
-  bindTouch('tb-bomb', 'ShiftLeft');
-  bindTouch('tb-up', 'ArrowUp');
-  bindTouch('tb-left', 'ArrowLeft');
-  bindTouch('tb-down', 'ArrowDown');
-  bindTouch('tb-right', 'ArrowRight');
+  // Cardinal Movement
+  bindTouch('tb-w', () => keysHeld['KeyW'] = true, () => keysHeld['KeyW'] = false);
+  bindTouch('tb-a', () => keysHeld['KeyA'] = true, () => keysHeld['KeyA'] = false);
+  bindTouch('tb-s', () => keysHeld['KeyS'] = true, () => keysHeld['KeyS'] = false);
+  bindTouch('tb-d', () => keysHeld['KeyD'] = true, () => keysHeld['KeyD'] = false);
+  bindTouch('tb-e', () => keysHeld['KeyE'] = true, () => keysHeld['KeyE'] = false);
+  bindTouch('tb-bomb', () => keysHeld['ShiftLeft'] = true, () => keysHeld['ShiftLeft'] = false);
+
+  // Diagonal Movement Buttons! (↖ ↗ ↙ ↘)
+  bindTouch('tb-mov-ul', () => { keysHeld['KeyW'] = true; keysHeld['KeyA'] = true; }, () => { keysHeld['KeyW'] = false; keysHeld['KeyA'] = false; });
+  bindTouch('tb-mov-ur', () => { keysHeld['KeyW'] = true; keysHeld['KeyD'] = true; }, () => { keysHeld['KeyW'] = false; keysHeld['KeyD'] = false; });
+  bindTouch('tb-mov-dl', () => { keysHeld['KeyS'] = true; keysHeld['KeyA'] = true; }, () => { keysHeld['KeyS'] = false; keysHeld['KeyA'] = false; });
+  bindTouch('tb-mov-dr', () => { keysHeld['KeyS'] = true; keysHeld['KeyD'] = true; }, () => { keysHeld['KeyS'] = false; keysHeld['KeyD'] = false; });
+
+  // Cardinal Shooting
+  bindTouch('tb-up', () => keysHeld['ArrowUp'] = true, () => keysHeld['ArrowUp'] = false);
+  bindTouch('tb-left', () => keysHeld['ArrowLeft'] = true, () => keysHeld['ArrowLeft'] = false);
+  bindTouch('tb-down', () => keysHeld['ArrowDown'] = true, () => keysHeld['ArrowDown'] = false);
+  bindTouch('tb-right', () => keysHeld['ArrowRight'] = true, () => keysHeld['ArrowRight'] = false);
+
+  // Diagonal Shooting Buttons! (↖ ↗ ↙ ↘)
+  bindTouch('tb-shoot-ul', () => { keysHeld['ArrowUp'] = true; keysHeld['ArrowLeft'] = true; }, () => { keysHeld['ArrowUp'] = false; keysHeld['ArrowLeft'] = false; });
+  bindTouch('tb-shoot-ur', () => { keysHeld['ArrowUp'] = true; keysHeld['ArrowRight'] = true; }, () => { keysHeld['ArrowUp'] = false; keysHeld['ArrowRight'] = false; });
+  bindTouch('tb-shoot-dl', () => { keysHeld['ArrowDown'] = true; keysHeld['ArrowLeft'] = true; }, () => { keysHeld['ArrowDown'] = false; keysHeld['ArrowLeft'] = false; });
+  bindTouch('tb-shoot-dr', () => { keysHeld['ArrowDown'] = true; keysHeld['ArrowRight'] = true; }, () => { keysHeld['ArrowDown'] = false; keysHeld['ArrowRight'] = false; });
 
   window.addEventListener('keydown', (e) => {
     keysHeld[e.code] = true;
