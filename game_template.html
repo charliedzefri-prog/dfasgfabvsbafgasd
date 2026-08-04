@@ -177,57 +177,120 @@
       color: #b0a0e0;
     }
 
-    /* Mobile Touch Controls Overlay */
-    .touch-controls {
-      position: absolute;
-      bottom: 8px;
-      left: 0;
-      width: 100%;
-      display: none;
-      justify-content: space-between;
-      padding: 0 10px;
-      pointer-events: auto;
-      z-index: 40;
-    }
-
-    @media (hover: none) and (pointer: coarse), (max-width: 768px) {
+    /* Mobile Responsive Container & Touch Controls */
+    @media (max-width: 900px), (hover: none) and (pointer: coarse) {
+      body {
+        width: 100vw;
+        height: 100vh;
+        overflow: hidden;
+      }
+      #game-container {
+        width: 100vw !important;
+        height: 100vh !important;
+        max-width: 100vw !important;
+        max-height: 100vh !important;
+        border-radius: 0 !important;
+        border: none !important;
+      }
+      canvas#gameCanvas {
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: contain !important;
+      }
       .touch-controls {
-        display: flex !important;
+        display: block !important;
       }
       #controls-hint {
         display: none !important;
       }
     }
 
+    .touch-controls {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: none;
+      pointer-events: none;
+      z-index: 40;
+    }
+
+    /* Left-Side Virtual Analog Joystick */
+    .joystick-base {
+      position: absolute;
+      bottom: 25px;
+      left: 25px;
+      width: 105px;
+      height: 105px;
+      background: rgba(255, 255, 255, 0.15);
+      border: 2px solid rgba(255, 255, 255, 0.45);
+      border-radius: 50%;
+      touch-action: none;
+      pointer-events: auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.6);
+    }
+    .joystick-stick {
+      width: 42px;
+      height: 42px;
+      background: linear-gradient(180deg, #ff44aa 0%, #aa1166 100%);
+      border: 2px solid #ff77cc;
+      border-radius: 50%;
+      position: absolute;
+      pointer-events: none;
+      box-shadow: 0 0 10px rgba(255, 68, 170, 0.8);
+      transition: transform 0.05s ease-out;
+    }
+
+    /* Right-Side Compact Shooting Pad & Action Buttons */
+    .touch-right-panel {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 10px;
+      pointer-events: auto;
+    }
+
+    .touch-action-row {
+      display: flex;
+      gap: 10px;
+    }
+
     .touch-pad {
       display: grid;
-      grid-template-columns: repeat(3, 38px);
-      grid-template-rows: repeat(3, 38px);
-      gap: 3px;
+      grid-template-columns: repeat(3, 32px);
+      grid-template-rows: repeat(3, 32px);
+      gap: 2px;
     }
     .tbtn {
       background: rgba(255, 255, 255, 0.22);
       border: 1.5px solid rgba(255, 255, 255, 0.45);
-      border-radius: 8px;
+      border-radius: 6px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 15px;
+      font-size: 12px;
       color: white;
       user-select: none;
       font-weight: bold;
       box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+      touch-action: manipulation;
     }
     .tbtn:active {
       background: rgba(255, 68, 170, 0.7);
       transform: scale(0.92);
     }
-
-    .touch-bomb-box {
-      position: absolute;
-      bottom: 135px;
-      left: 10px;
-      pointer-events: auto;
+    .tbtn-action {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      font-size: 14px;
     }
 
     /* Controls Bar Footer */
@@ -300,6 +363,18 @@
       transition: all 0.2s ease;
       user-select: none;
       touch-action: manipulation;
+    }
+    .char-card.selected {
+      border: 3px solid #ff44aa !important;
+      background: rgba(90, 20, 80, 0.98) !important;
+      box-shadow: 0 0 20px #ff44aa, inset 0 0 12px #ff44aa !important;
+      transform: scale(1.08) !important;
+    }
+    .char-card.locked {
+      opacity: 0.6;
+      filter: grayscale(0.85);
+      border-color: #333344 !important;
+      background: rgba(15, 10, 20, 0.9) !important;
     }
       width: 130px;
       text-align: center;
@@ -409,34 +484,30 @@
 
       <!-- Mobile Touch Controls Overlay -->
       <div class="touch-controls">
-        <div class="touch-bomb-box">
-          <div class="tbtn" id="tb-bomb" style="width: 44px; height: 44px; background: rgba(255, 80, 0, 0.5);">💣</div>
+        <!-- Left Side: Smooth Virtual Touch Analog Joystick -->
+        <div id="joystick-base" class="joystick-base">
+          <div id="joystick-stick" class="joystick-stick"></div>
         </div>
 
-        <!-- 8-Direction Movement D-Pad -->
-        <div class="touch-pad">
-          <div class="tbtn" id="tb-mov-ul">↖</div>
-          <div class="tbtn" id="tb-w">▲</div>
-          <div class="tbtn" id="tb-mov-ur">↗</div>
-          <div class="tbtn" id="tb-a">◀</div>
-          <div class="tbtn" id="tb-e" style="background: rgba(0,200,255,0.4);">E</div>
-          <div class="tbtn" id="tb-d">▶</div>
-          <div class="tbtn" id="tb-mov-dl">↙</div>
-          <div class="tbtn" id="tb-s">▼</div>
-          <div class="tbtn" id="tb-mov-dr">↘</div>
-        </div>
+        <!-- Right Side: Compact Shooting Pad & Action Buttons -->
+        <div class="touch-right-panel">
+          <div class="touch-action-row">
+            <div class="tbtn tbtn-action" id="tb-bomb" style="background: rgba(255, 80, 0, 0.6);">💣</div>
+            <div class="tbtn tbtn-action" id="tb-e" style="background: rgba(0, 200, 255, 0.6);">E</div>
+          </div>
 
-        <!-- 8-Direction Shooting D-Pad -->
-        <div class="touch-pad">
-          <div class="tbtn" id="tb-shoot-ul">↖</div>
-          <div class="tbtn" id="tb-up">▲</div>
-          <div class="tbtn" id="tb-shoot-ur">↗</div>
-          <div class="tbtn" id="tb-left">◀</div>
-          <div class="tbtn" style="opacity: 0.3;">🎯</div>
-          <div class="tbtn" id="tb-right">▶</div>
-          <div class="tbtn" id="tb-shoot-dl">↙</div>
-          <div class="tbtn" id="tb-down">▼</div>
-          <div class="tbtn" id="tb-shoot-dr">↘</div>
+          <!-- 8-Direction Shooting Pad -->
+          <div class="touch-pad">
+            <div class="tbtn" id="tb-shoot-ul">↖</div>
+            <div class="tbtn" id="tb-up">▲</div>
+            <div class="tbtn" id="tb-shoot-ur">↗</div>
+            <div class="tbtn" id="tb-left">◀</div>
+            <div class="tbtn" style="opacity: 0.3;">🎯</div>
+            <div class="tbtn" id="tb-right">▶</div>
+            <div class="tbtn" id="tb-shoot-dl">↙</div>
+            <div class="tbtn" id="tb-down">▼</div>
+            <div class="tbtn" id="tb-shoot-dr">↘</div>
+          </div>
         </div>
       </div>
 
@@ -465,7 +536,17 @@
 
       <div class="char-grid" id="char-select-grid"></div>
 
-      <button class="btn" id="btn-start-game">В БОЙ!</button>
+      <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap; justify-content: center;">
+        <button class="btn" id="btn-continue-game" style="display: none; background: linear-gradient(180deg, #22cc88 0%, #116644 100%); border-color: #44ffbb;">▶ ПРОДОЛЖИТЬ ИГРУ</button>
+        <button class="btn" id="btn-start-game">В БОЙ!</button>
+      </div>
+
+      <div style="display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; justify-content: center;">
+        <button class="btn btn-small" id="btn-item-gallery" style="background: linear-gradient(180deg, #ffaa00 0%, #aa6600 100%); border-color: #ffdd66;">🧪 ГАЛЕРЕЯ ПРЕДМЕТОВ</button>
+        <button class="btn btn-small" id="btn-export-save" style="background: linear-gradient(180deg, #3388ff 0%, #1144aa 100%); border-color: #66aaff;">📥 СКАЧАТЬ СЕЙВ</button>
+        <button class="btn btn-small" id="btn-import-save" style="background: linear-gradient(180deg, #aa44ff 0%, #5511aa 100%); border-color: #cc77ff;">📤 ЗАГРУЗИТЬ СЕЙВ</button>
+      </div>
+      <input type="file" id="file-import-save" accept=".json" style="display: none;">
     </div>
 
     <!-- Pause Screen -->
@@ -524,6 +605,7 @@ let particles = [];
 let floatingTexts = [];
 let keysHeld = {};
 let mousePos = { x: 0, y: 0, down: false };
+let jVector = { x: 0, y: 0 };
 let currentRoom = null;
 let currentRoomPos = { x: 2, y: 2 };
 let dungeonMap = [];
@@ -767,6 +849,42 @@ class AudioEngine {
           osc2.start(now);
           osc1.stop(now + 0.18);
           osc2.stop(now + 0.18);
+        } else if (this.currentTrackType === 'lofi') {
+          const lofiNotes = [130.81, 164.81, 196.00, 246.94, 146.83, 174.61, 220.00, 261.63];
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.value = lofiNotes[this.noteStep % lofiNotes.length];
+          gain.gain.setValueAtTime(0.06, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.35);
+        } else if (this.currentTrackType === 'horror') {
+          const horrorDrones = [65.41, 61.74, 58.27, 55.00, 61.74, 55.00, 51.91, 58.27];
+          const osc1 = this.ctx.createOscillator();
+          const osc2 = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+
+          osc1.type = 'sawtooth';
+          osc2.type = 'sine';
+
+          const freq = horrorDrones[this.noteStep % horrorDrones.length];
+          osc1.frequency.value = freq;
+          osc2.frequency.value = freq * 1.414;
+
+          gain.gain.setValueAtTime(0.07, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+
+          osc1.connect(gain);
+          osc2.connect(gain);
+          gain.connect(this.ctx.destination);
+
+          osc1.start(now);
+          osc2.start(now);
+          osc1.stop(now + 0.4);
+          osc2.stop(now + 0.4);
         } else if (this.currentTrackType === 'shop') {
           const shopChords = [261.63, 329.63, 392.00, 493.88, 293.66, 349.23, 440.00, 523.25];
           const osc = this.ctx.createOscillator();
@@ -836,10 +954,18 @@ const FLOORS = [
   { id: 4, name: 'ЭТАЖ 4: КАТАКОМБЫ (CATACOMBS)', bgTile: '#381f33', wallColor: '#1a0817', boss: 'boss_sosal' },
   { id: 5, name: 'ЭТАЖ 5: ГЛУБИНЫ (DEPTHS)', bgTile: '#1f1f2e', wallColor: '#0c0c14', boss: 'boss_mask' },
   { id: 6, name: 'ЭТАЖ 6: НЕКРОПОЛЬ (NECROPOLIS)', bgTile: '#383236', wallColor: '#1c181a', boss: 'boss_sins_duo' },
-  { id: 7, name: 'ЭТАЖ 7: ЧРЕВО (WOMB)', bgTile: '#4a151f', wallColor: '#21050a', boss: 'boss_fly_lord' },
+  { id: 7, name: 'ЭТАЖ 7: ЧРЕВО (WOMB)', bgTile: '#4a151f', wallColor: '#21050a', boss: 'boss_mister_666' },
   { id: 8, name: 'ЭТАЖ 8: ПРЕИСПОДНЯЯ (SHEOL)', bgTile: '#3d0c0c', wallColor: '#170303', boss: 'boss_satan' },
   { id: 9, name: 'ЭТАЖ 9: ЛОГОВО МЕГА САТАНЫ (THE VOID)', bgTile: '#2b103d', wallColor: '#12031c', boss: 'boss_mega_satan' }
 ];
+
+const BLUE_WOMB_FLOOR = {
+  id: 99,
+  name: 'ЭТАЖ ???: ЛОГОВО ХАША (BLUE WOMB)',
+  bgTile: '#0b2038',
+  wallColor: '#051020',
+  boss: 'boss_jarkhnidza'
+};
 
 const FLOOR_MOBS = {
   1: ['mouse', 'snake', 'chicken', 'bunny', 'alt1_1'],
@@ -875,51 +1001,6 @@ const CHARACTERS = [
     item: 'magic_mushroom'
   },
   {
-    id: 'sosal_devil',
-    name: 'Демон SOSAL (Азазель)',
-    sheet: 'char_sosal_devil.png',
-    hp: 2, maxHp: 2, soulHp: 4,
-    speed: 4.2, damage: 5.5, tearRate: 1.1,
-    desc: '👿 СТАРТУЕТ КАК АЗАЗЕЛЬ! Заряжаемый короткий красный Бримстоун!',
-    item: 'mini_brimstone'
-  },
-  {
-    id: 'ram_knight',
-    name: 'Барашек-Воин',
-    sheet: 'char_ram_1.png',
-    hp: 6, maxHp: 6, soulHp: 2,
-    speed: 4.0, damage: 4.8, tearRate: 1.1,
-    desc: '🐑 БАРАШЕК ПРЕИСПОДНЕЙ! Начинает со Священной Свечой и рогами!',
-    item: 'holy_candle'
-  },
-  {
-    id: 'purple_phantom',
-    name: 'Фиолетовая Тень',
-    sheet: 'char_alt1_2.png',
-    hp: 4, maxHp: 4, soulHp: 4,
-    speed: 4.2, damage: 4.2, tearRate: 1.2,
-    desc: '🔮 ТЕНЕВОЙ ПРИЗРАК! Самонаводящиеся фиолетовые слёзы!',
-    item: 'spoon_bender'
-  },
-  {
-    id: 'green_crown_cat',
-    name: 'Коронованный Кот',
-    sheet: 'char_alt2_4.png',
-    hp: 6, maxHp: 6, soulHp: 0,
-    speed: 3.8, damage: 4.5, tearRate: 1.0,
-    desc: '👑 ИЗУМРУДНЫЙ КОРОЛЬ! Летающие лазерные кольца Технологии X!',
-    item: 'tech_x'
-  },
-  {
-    id: 'cat_warrior',
-    name: 'Мяу-Рыцарь',
-    sheet: 'char_cat_warrior.png',
-    hp: 6, maxHp: 6, soulHp: 0,
-    speed: 3.8, damage: 4.5, tearRate: 1.2,
-    desc: '🐱 СТАРТУЕТ С МЯУМУРОМ! Рикошетные радужные котики!',
-    item: 'meowmere'
-  },
-  {
     id: 'seven',
     name: 'Айзек Семёрка',
     sheet: 'char_seven.png',
@@ -929,13 +1010,92 @@ const CHARACTERS = [
     item: null
   },
   {
+    id: 'sosal_devil',
+    name: 'Демон SOSAL (Азазель)',
+    sheet: 'char_sosal_devil.png',
+    hp: 2, maxHp: 2, soulHp: 4,
+    speed: 4.2, damage: 5.5, tearRate: 1.1,
+    desc: '👿 СТАРТУЕТ КАК АЗАЗЕЛЬ! Заряжаемый короткий красный Бримстоун!',
+    item: 'mini_brimstone',
+    unlockKey: 'unlocked_sosal_devil',
+    reqText: 'Пройдите 4 этаж (Катакомбы) или заключите 3 сделки с дьяволом!'
+  },
+  {
+    id: 'ram_knight',
+    name: 'Барашек-Воин',
+    sheet: 'char_ram_1.png',
+    hp: 6, maxHp: 6, soulHp: 2,
+    speed: 4.0, damage: 4.8, tearRate: 1.1,
+    desc: '🐑 БАРАШЕК ПРЕИСПОДНЕЙ! Начинает со Священной Свечой и рогами!',
+    item: 'holy_candle',
+    unlockKey: 'unlocked_ram_knight',
+    reqText: 'Дойдите до 8 этажа (Преисподняя)!'
+  },
+  {
+    id: 'purple_phantom',
+    name: 'Фиолетовая Тень',
+    sheet: 'char_alt1_2.png',
+    hp: 4, maxHp: 4, soulHp: 4,
+    speed: 4.2, damage: 4.2, tearRate: 1.2,
+    desc: '🔮 ТЕНЕВОЙ ПРИЗРАК! Самонаводящиеся фиолетовые слёзы!',
+    item: 'spoon_bender',
+    unlockKey: 'unlocked_purple_phantom',
+    reqText: 'Посетите Зал Планетария!'
+  },
+  {
+    id: 'green_crown_cat',
+    name: 'Коронованный Кот',
+    sheet: 'char_alt2_4.png',
+    hp: 6, maxHp: 6, soulHp: 0,
+    speed: 3.8, damage: 4.5, tearRate: 1.0,
+    desc: '👑 ИЗУМРУДНЫЙ КОРОЛЬ! Летающие лазерные кольца Технологии X!',
+    item: 'tech_x',
+    unlockKey: 'unlocked_green_crown_cat',
+    reqText: 'Победите Мега Сатану на 9 этаже!'
+  },
+  {
+    id: 'cat_warrior',
+    name: 'Мяу-Рыцарь',
+    sheet: 'char_cat_warrior.png',
+    hp: 6, maxHp: 6, soulHp: 0,
+    speed: 3.8, damage: 4.5, tearRate: 1.2,
+    desc: '🐱 СТАРТУЕТ С МЯУМУРОМ! Рикошетные радужные котики!',
+    item: 'meowmere',
+    unlockKey: 'unlocked_cat_warrior',
+    reqText: 'Соберите 50 монет за один забег!'
+  },
+  {
     id: 'angel',
     name: 'Ангел Десятка',
     sheet: 'char_angel.png',
     hp: 4, maxHp: 4, soulHp: 4,
     speed: 4.0, damage: 3.0, tearRate: 1.1,
     desc: 'Священный ангел с душевными сердцами и полётом.',
-    item: 'halo'
+    item: 'halo',
+    unlockKey: 'unlocked_angel',
+    reqText: 'Войдите в Ангельскую комнату 2 раза!'
+  },
+  {
+    id: 'chara',
+    name: '🗡️ Чара (Chara)',
+    sheet: 'char_chara.png',
+    hp: 6, maxHp: 6, soulHp: 0,
+    speed: 4.2, damage: 5.5, tearRate: 1.2,
+    desc: '🔪 РЕШИМОСТЬ UNDERTALE! Начинает с Ножом Чары и высоким уроном!',
+    item: 'chara_knife',
+    unlockKey: 'unlocked_chara',
+    reqText: 'Заключите 2 сделки с дьяволом или одолейте Демона SOSAL!'
+  },
+  {
+    id: 'jarkhne',
+    name: 'Великий Ярхне',
+    sheet: 'char_ram_5.png',
+    hp: 8, maxHp: 8, soulHp: 4,
+    speed: 4.2, damage: 6.0, tearRate: 1.4,
+    desc: '💥 ВЛАДЫКА HUSH! Начинает с Ипекаком, Бримстоуном и Священным Сердцем!',
+    item: 'ipecac',
+    unlockKey: 'unlocked_jarkhne',
+    reqText: 'Победите Великого Ярхне на этаже ??? (Blue Womb)!'
   }
 ];
 
@@ -950,6 +1110,133 @@ const ITEMS_DB = {
     apply: (p) => {
       p.hasKnife = true;
       p.damage += 4.0;
+    }
+  },
+  cereal: {
+    id: 'cereal',
+    name: 'ВКУСНЫЕ ХЛОПЬЯ (CEREAL)',
+    desc: 'Питательный завтрак! HP +2, Урон +2.0, Скорость +0.5!',
+    icon: 'icon_cereal.png',
+    cost: 0,
+    apply: (p) => {
+      p.maxHp += 2;
+      p.hp += 2;
+      p.damage += 2.0;
+      p.speed += 0.5;
+    }
+  },
+  terra_blade: {
+    id: 'terra_blade',
+    name: 'ТЕРРА-МЕЧ (TERRA BLADE)',
+    desc: 'Легендарный меч Террарии! Мощные зелёные светящиеся клинки!',
+    icon: 'terra_blade_64.png',
+    cost: 0,
+    apply: (p) => {
+      p.hasTerraBlade = true;
+      p.damage += 3.5;
+      p.tearSpeed += 2.5;
+    }
+  },
+  the_pact: {
+    id: 'the_pact',
+    name: 'ДОГОВОР (THE PACT)',
+    desc: 'Сделка с Дьяволом! Урон +2.0, Скорострельность +0.5, +2 Синих Сердца!',
+    icon: 'icon_pact.png',
+    cost: 2,
+    apply: (p) => {
+      p.damage += 2.0;
+      p.tearRate += 0.5;
+      p.soulHp += 4;
+    }
+  },
+  abaddon: {
+    id: 'abaddon',
+    name: 'АБАДДОН (ABADDON)',
+    desc: 'Тёмное проклятие Бездны! Урон +3.5, Скорость +0.3, +6 Синих Сердец!',
+    icon: 'icon_abaddon.png',
+    cost: 2,
+    apply: (p) => {
+      p.damage += 3.5;
+      p.speed += 0.3;
+      p.soulHp += 12;
+    }
+  },
+  lord_of_the_pit: {
+    id: 'lord_of_the_pit',
+    name: 'ВЛАДЫКА БЕЗДНЫ (LORD OF THE PIT)',
+    desc: 'Дьявольские крылья полёта! Скорость +1.0 +2 Синих Сердца!',
+    icon: 'icon_lord_pit.png',
+    cost: 2,
+    apply: (p) => {
+      p.speed += 1.0;
+      p.soulHp += 4;
+    }
+  },
+  eye_of_belial: {
+    id: 'eye_of_belial',
+    name: 'ГЛАЗ ВЕЛИАЛА (EYE OF BELIAL)',
+    desc: 'Самонаводящийся пронзающий дьявольский взгляд! Урон +2.5!',
+    icon: 'icon_belial.png',
+    cost: 2,
+    apply: (p) => {
+      p.damage += 2.5;
+      p.homingTears = true;
+    }
+  },
+  relic: {
+    id: 'relic',
+    name: 'РЕЛИКВИЯ (THE RELIC)',
+    desc: 'Священная золотая шкатулка! Выпускает душевные синие сердца 💙!',
+    icon: 'icon_relic.png',
+    cost: 0,
+    apply: (p) => {
+      p.soulHp += 4;
+    }
+  },
+  halo_of_flies: {
+    id: 'halo_of_flies',
+    name: 'ОРЕОЛ МУХ (HALO OF FLIES)',
+    desc: '2 орбитальные синие мухи блокируют вражеские снаряды!',
+    icon: 'icon_halo_flies.png',
+    cost: 0,
+    apply: (p) => {
+      p.hasHaloFlies = true;
+      p.soulHp += 2;
+    }
+  },
+  guardian_angel: {
+    id: 'guardian_angel',
+    name: 'АНГЕЛ-ХРАНИТЕЛЬ (GUARDIAN ANGEL)',
+    desc: 'Защитный святой щит! Скорость +1.0, +2 Синих Сердца!',
+    icon: 'icon_guardian_angel.png',
+    cost: 0,
+    apply: (p) => {
+      p.speed += 1.0;
+      p.soulHp += 4;
+      p.hasHalo = true;
+    }
+  },
+  stigmata: {
+    id: 'stigmata',
+    name: 'СТИГМАТЫ (STIGMATA)',
+    desc: 'Святое откровение! Урон +2.5 +2 Красных Сердца!',
+    icon: 'icon_stigmata.png',
+    cost: 0,
+    apply: (p) => {
+      p.damage += 2.5;
+      p.maxHp += 2;
+      p.hp += 2;
+    }
+  },
+  purity: {
+    id: 'purity',
+    name: 'ЧИСТОТА (PURITY)',
+    desc: 'Священная аура чистоты! Урон +3.0 + Скорострельность +1.0!',
+    icon: 'icon_purity.png',
+    cost: 0,
+    apply: (p) => {
+      p.damage += 3.0;
+      p.tearRate += 1.0;
     }
   },
   godhead: {
@@ -967,12 +1254,15 @@ const ITEMS_DB = {
   ipecac: {
     id: 'ipecac',
     name: 'ИПЕКАК (IPECAC)',
-    desc: 'Огромный урон (+10.0)! Гигантские ядовитые взрывные слёзы!',
+    desc: 'Огромный урон (+10.0)! Медленные взрывные самонаводящиеся слёзы!',
     icon: 'icon_ipecac.png',
     cost: 0,
     apply: (p) => {
       p.hasIpecac = true;
+      p.homingTears = true;
       p.damage += 10.0;
+      p.tearRate *= 0.25;
+      p.tearSpeed = 3.8;
       p.tearScale *= 1.8;
     }
   },
@@ -1069,7 +1359,7 @@ const ITEMS_DB = {
     id: 'shop_heart',
     name: 'СЕРДЦЕ ИСЦЕЛЕНИЯ (SHOP)',
     desc: 'Восстанавливает 2 красных сердца за 5 монет!',
-    icon: 'meowmere_64.png',
+    icon: 'icon_shop_heart.png',
     costCoins: 5,
     apply: (p) => {
       p.hp = Math.min(p.maxHp, p.hp + 4);
@@ -1079,7 +1369,7 @@ const ITEMS_DB = {
     id: 'shop_bombs',
     name: 'НАБОР БОМБ +3 (SHOP)',
     desc: '+3 Бомбы за 5 монет!',
-    icon: 'meowmere_64.png',
+    icon: 'icon_shop_bombs.png',
     costCoins: 5,
     apply: (p) => {
       p.bombs += 3;
@@ -1089,7 +1379,7 @@ const ITEMS_DB = {
     id: 'shop_keys',
     name: 'НАБОР КЛЮЧЕЙ +3 (SHOP)',
     desc: '+3 Ключа за 5 монет!',
-    icon: 'meowmere_64.png',
+    icon: 'icon_shop_keys.png',
     costCoins: 5,
     apply: (p) => {
       p.keys += 3;
@@ -1121,7 +1411,7 @@ const ITEMS_DB = {
     id: 'mini_brimstone',
     name: 'МИНИ БРИМСТОУН (АЗАЗЕЛЬ)',
     desc: 'Заряжаемый короткий красный лазер Бримстоуна!',
-    icon: 'meowmere_64.png',
+    icon: 'icon_mini_brimstone.png',
     cost: 0,
     apply: (p) => {
       p.hasMiniBrimstone = true;
@@ -1131,7 +1421,7 @@ const ITEMS_DB = {
     id: 'sacred_heart',
     name: 'СВЯЩЕННОЕ СЕРДЦЕ',
     desc: 'Огромный урон + Наводящиеся слезы + Душевные сердца!',
-    icon: 'icon_godhead.png',
+    icon: 'icon_sacred_heart.png',
     cost: 0,
     apply: (p) => {
       p.damage += 4.0;
@@ -1165,7 +1455,7 @@ const ITEMS_DB = {
     id: 'polyphemus',
     name: 'ПОЛИФЕМ (Гигантский Глаз)',
     desc: 'Громадный урон! Гигантские слезы!',
-    icon: null,
+    icon: 'icon_polyphemus.png',
     cost: 0,
     apply: (p) => {
       p.damage += 5.0;
@@ -1177,7 +1467,7 @@ const ITEMS_DB = {
     id: 'halo',
     name: 'СВЯТОЙ НИМБ',
     desc: 'Все характеристики повышены + орбитальный щит!',
-    icon: null,
+    icon: 'icon_halo.png',
     cost: 0,
     apply: (p) => {
       p.damage += 1.0;
@@ -1191,7 +1481,7 @@ const ITEMS_DB = {
     id: 'horns',
     name: 'РОГА ДЕМОНА (BRIMSTONE)',
     desc: '+3.0 к Урону! Заряжаемый Бримстоун-лазер!',
-    icon: 'meowmere_64.png',
+    icon: 'icon_horns.png',
     cost: 2,
     apply: (p) => {
       p.damage += 3.0;
@@ -1418,6 +1708,11 @@ class Player {
     this.hasMagnet = false;
     this.hasCandle = false;
     this.hasMap = false;
+    this.hasIpecac = false;
+    this.hasSoyMilk = false;
+    this.hasChocMilk = false;
+    this.hasStrawMilk = false;
+    this.hasTerraBlade = false;
     this.homingTears = false;
     this.swingTimer = 0;
 
@@ -1451,20 +1746,31 @@ class Player {
     if (this.swingTimer > 0) this.swingTimer--;
 
     let dx = 0, dy = 0;
-    if (keysHeld['KeyA']) dx -= 1;
-    if (keysHeld['KeyD']) dx += 1;
-    if (keysHeld['KeyW']) dy -= 1;
-    if (keysHeld['KeyS']) dy += 1;
+    if (jVector && (jVector.x !== 0 || jVector.y !== 0)) {
+      dx = jVector.x;
+      dy = jVector.y;
+      const len = Math.hypot(dx, dy);
+      if (len > 1) {
+        dx /= len;
+        dy /= len;
+      }
+    } else {
+      if (keysHeld['KeyA']) dx -= 1;
+      if (keysHeld['KeyD']) dx += 1;
+      if (keysHeld['KeyW']) dy -= 1;
+      if (keysHeld['KeyS']) dy += 1;
 
-    if (dx !== 0 && dy !== 0) {
-      dx *= 0.7071;
-      dy *= 0.7071;
+      if (dx !== 0 && dy !== 0) {
+        dx *= 0.7071;
+        dy *= 0.7071;
+      }
     }
 
-    if (dy > 0) this.dir = 0;
-    else if (dx < 0) this.dir = 1;
-    else if (dx > 0) this.dir = 2;
-    else if (dy < 0) this.dir = 3;
+    if (Math.abs(dy) >= Math.abs(dx) && dy !== 0) {
+      this.dir = dy > 0 ? 0 : 3;
+    } else if (dx !== 0) {
+      this.dir = dx > 0 ? 2 : 1;
+    }
 
     const nextX = this.x + dx * this.speed;
     const nextY = this.y + dy * this.speed;
@@ -1502,7 +1808,7 @@ class Player {
 
     const effDmg = this.getEffectiveDamage();
 
-    // 1. CHARA'S KNIFE COMBO (2 Close Melee Slashes + Long Charge Boomerang Throw!)
+    // 1. CHARA'S KNIFE COMBO & SWORD SYNERGIES
     if (this.hasKnife) {
       this.knifeCharge = this.knifeCharge || 0;
       this.knifeSlashes = this.knifeSlashes || 0;
@@ -1518,34 +1824,108 @@ class Player {
 
           const sX = shootDir.x;
           const sY = shootDir.y;
-          projectiles.push(new Projectile(
-            this.x + sX * 30, this.y + sY * 30, sX * 5, sY * 5,
-            effDmg * 1.8, 'chara_knife_proj', this.tearScale * 1.4, false, false
-          ));
+          const attackAngle = Math.atan2(sY, sX);
+          const projType = this.hasIpecac ? 'ipecac_knife' : 'chara_knife_melee';
+
+          const proj = new Projectile(
+            this.x + sX * 28, this.y + sY * 28, 0, 0,
+            effDmg * 2.2, projType, this.tearScale * 1.2, false, false
+          );
+          proj.offsetX = sX * 28;
+          proj.offsetY = sY * 28;
+          proj.attackAngle = attackAngle;
+          proj.angle = attackAngle;
+          proj.life = 12;
+          proj.maxLife = 12;
+          projectiles.push(proj);
+
+          // SPECTACULAR SWORD SYNERGIES DURING MELEE SLASH!
+          if (this.hasMeowmere) {
+            // Meow-Knife Synergy: Triple Bouncing Cat Burst!
+            for (let i = -1; i <= 1; i++) {
+              const a = attackAngle + i * 0.28;
+              projectiles.push(new Projectile(
+                this.x, this.y, Math.cos(a) * (this.tearSpeed + 2), Math.sin(a) * (this.tearSpeed + 2),
+                effDmg * 1.6, this.hasIpecac ? 'ipecac_meowmere' : 'meowmere', this.tearScale * 1.3, true, true
+              ));
+            }
+            audio.playMeow();
+          }
+          if (this.hasTerraBlade) {
+            for (let i = -1; i <= 1; i += 2) {
+              const a = attackAngle + i * 0.20;
+              projectiles.push(new Projectile(
+                this.x, this.y, Math.cos(a) * (this.tearSpeed + 3), Math.sin(a) * (this.tearSpeed + 3),
+                effDmg * 1.6, this.hasIpecac ? 'ipecac_terra_blade' : 'terra_blade', this.tearScale * 1.3, true, this.homingTears
+              ));
+            }
+          }
+
           this.shootTimer = 12;
         }
       } else {
         if (this.knifeCharge > 18 && this.shootTimer <= 0) {
           const sX = this.knifeDir ? this.knifeDir.x : 1;
           const sY = this.knifeDir ? this.knifeDir.y : 0;
+          const attackAngle = Math.atan2(sY, sX);
           const chargeFrac = Math.min(1.0, (this.knifeCharge - 18) / 57);
           const throwSpeed = 5.0 + chargeFrac * 12.0;
           const dmgMult = 1.2 + chargeFrac * 1.8;
 
           audio.playHit();
 
-          if (this.hasMeowmere) {
-            projectiles.push(new Projectile(
-              this.x, this.y, sX * throwSpeed, sY * throwSpeed,
-              effDmg * 2.0 * dmgMult, 'chara_knife_proj', this.tearScale * (1.3 + chargeFrac * 0.5), true, true
-            ));
+          if (this.hasMeowmere && this.hasTerraBlade) {
+            // Triple Chara Zenith!
             audio.playMeow();
-          } else {
             projectiles.push(new Projectile(
               this.x, this.y, sX * throwSpeed, sY * throwSpeed,
-              effDmg * 1.6 * dmgMult, 'chara_knife_proj', this.tearScale * (1.1 + chargeFrac * 0.4), false, this.homingTears
+              effDmg * 2.2 * dmgMult, 'meow_knife_proj', this.tearScale * (1.3 + chargeFrac * 0.4), true, true
+            ));
+            projectiles.push(new Projectile(
+              this.x, this.y, sX * (throwSpeed + 2), sY * (throwSpeed + 2),
+              effDmg * 2.5 * dmgMult, 'zenith_core', this.tearScale * (1.3 + chargeFrac * 0.4), true, true
+            ));
+            for (let i = -1; i <= 1; i += 2) {
+              const a = attackAngle + i * 0.22;
+              projectiles.push(new Projectile(
+                this.x, this.y, Math.cos(a) * (throwSpeed + 1), Math.sin(a) * (throwSpeed + 1),
+                effDmg * 1.8 * dmgMult, 'terra_blade', this.tearScale * (1.2 + chargeFrac * 0.3), true, this.homingTears
+              ));
+            }
+          } else if (this.hasMeowmere) {
+            // Meow Knife Synergy!
+            audio.playMeow();
+            projectiles.push(new Projectile(
+              this.x, this.y, sX * throwSpeed, sY * throwSpeed,
+              effDmg * 2.0 * dmgMult, 'meow_knife_proj', this.tearScale * (1.3 + chargeFrac * 0.4), true, true
+            ));
+            for (let i = -1; i <= 1; i += 2) {
+              const a = attackAngle + i * 0.25;
+              projectiles.push(new Projectile(
+                this.x, this.y, Math.cos(a) * (throwSpeed + 1), Math.sin(a) * (throwSpeed + 1),
+                effDmg * 1.8 * dmgMult, 'meowmere', this.tearScale * (1.2 + chargeFrac * 0.3), true, true
+              ));
+            }
+          } else if (this.hasTerraBlade) {
+            projectiles.push(new Projectile(
+              this.x, this.y, sX * throwSpeed, sY * throwSpeed,
+              effDmg * 1.8 * dmgMult, 'chara_knife_proj', this.tearScale * (1.1 + chargeFrac * 0.4), true, this.homingTears
+            ));
+            for (let i = -1; i <= 1; i += 2) {
+              const a = attackAngle + i * 0.20;
+              projectiles.push(new Projectile(
+                this.x, this.y, Math.cos(a) * (throwSpeed + 2), Math.sin(a) * (throwSpeed + 2),
+                effDmg * 1.6 * dmgMult, 'terra_blade', this.tearScale * (1.1 + chargeFrac * 0.4), true, this.homingTears
+              ));
+            }
+          } else {
+            const projType = this.hasIpecac ? 'ipecac_knife' : 'chara_knife_proj';
+            projectiles.push(new Projectile(
+              this.x, this.y, sX * throwSpeed, sY * throwSpeed,
+              effDmg * 1.8 * dmgMult, projType, this.tearScale * (1.1 + chargeFrac * 0.4), true, this.homingTears
             ));
           }
+
           this.shootTimer = 22;
         }
         this.knifeCharge = 0;
@@ -1562,20 +1942,14 @@ class Player {
         if (this.chocCharge > 5 && this.shootTimer <= 0) {
           const sX = this.chocDir ? this.chocDir.x : 1;
           const sY = this.chocDir ? this.chocDir.y : 0;
-          const chargeFrac = this.chocCharge / 55;
-
-          projectiles.push(new Projectile(
-            this.x, this.y, sX * this.tearSpeed, sY * this.tearSpeed,
-            effDmg * (1.0 + chargeFrac * 2.5), 'normal', this.tearScale * (1.0 + chargeFrac * 1.2), false, this.homingTears
-          ));
-          audio.playTear();
+          this.fireTear(sX, sY);
           this.shootTimer = 16;
         }
         this.chocCharge = 0;
       }
     }
     // 3. BRIMSTONE WEAPONS
-    else if (this.hasMiniBrimstone || this.hasHorns || (this.hasMeowmere && this.hasHorns)) {
+    else if (this.hasMiniBrimstone || this.hasHorns || (this.hasMeowmere && (this.hasHorns || this.hasMiniBrimstone)) || (this.hasIpecac && (this.hasHorns || this.hasMiniBrimstone))) {
       if (shootDir !== null) {
         this.brimstoneDir = shootDir;
         this.brimstoneCharge = Math.min(this.maxBrimstoneCharge, this.brimstoneCharge + 1.8);
@@ -1618,48 +1992,167 @@ class Player {
 
   fireTear(dirX, dirY) {
     this.swingTimer = 12;
-    const effDmg = this.getEffectiveDamage();
+    const chocFrac = (this.chocCharge || 0) / 55;
+    const chocDmgMult = this.hasChocMilk ? (1.0 + chocFrac * 2.5) : 1.0;
+    const chocScaleMult = this.hasChocMilk ? (1.0 + chocFrac * 1.2) : 1.0;
+    const effDmg = this.getEffectiveDamage() * chocDmgMult;
+    const effScale = this.tearScale * chocScaleMult;
 
     // IPECAC ALL SYNERGIES!
     if (this.hasIpecac) {
       audio.playExplosion();
 
-      if (this.hasMeowmere && (this.hasHorns || this.hasMiniBrimstone)) {
+      if (this.hasTerraBlade && this.hasMeowmere && this.hasKnife) {
+        for (let i = -1; i <= 1; i += 2) {
+          const a = Math.atan2(dirY, dirX) + i * 0.20;
+          projectiles.push(new Projectile(
+            this.x, this.y, Math.cos(a) * 5.0, Math.sin(a) * 5.0,
+            effDmg * 2.2, 'ipecac_terra_blade', this.tearScale * 1.6, true, true
+          ));
+        }
         projectiles.push(new Projectile(
-          this.x, this.y, dirX, dirY,
-          effDmg * 2.2, 'ipecac_meowmere_brimstone', this.tearScale * 1.6, true, true
+          this.x, this.y, dirX * 6.0, dirY * 6.0,
+          effDmg * 2.2, 'ipecac_knife', this.tearScale * 1.6, false, true
+        ));
+        projectiles.push(new Projectile(
+          this.x, this.y, dirX * 5.0, dirY * 5.0,
+          effDmg * 2.2, 'ipecac_meowmere', this.tearScale * 1.5, true, true
+        ));
+      } else if (this.hasTerraBlade && this.hasMeowmere) {
+        for (let i = -1; i <= 1; i += 2) {
+          const a = Math.atan2(dirY, dirX) + i * 0.18;
+          projectiles.push(new Projectile(
+            this.x, this.y, Math.cos(a) * 4.5, Math.sin(a) * 4.5,
+            effDmg * 1.8, 'ipecac_terra_blade', this.tearScale * 1.5, true, true
+          ));
+        }
+        projectiles.push(new Projectile(
+          this.x, this.y, dirX * 4.5, dirY * 4.5,
+          effDmg * 2.0, 'ipecac_meowmere', this.tearScale * 1.5, true, true
+        ));
+      } else if (this.hasTerraBlade) {
+        projectiles.push(new Projectile(
+          this.x, this.y, dirX * 4.5, dirY * 4.5,
+          effDmg * 1.6, 'ipecac_terra_blade', this.tearScale * 1.5, true, true
         ));
       } else if (this.hasKnife) {
         projectiles.push(new Projectile(
-          this.x, this.y, dirX * 8, dirY * 8,
-          effDmg * 1.8, 'ipecac_knife', this.tearScale * 1.5, false, this.homingTears
+          this.x, this.y, dirX * 6, dirY * 6,
+          effDmg * 1.8, 'ipecac_knife', this.tearScale * 1.5, false, true
         ));
       } else if (this.hasTechX) {
         projectiles.push(new Projectile(
-          this.x, this.y, dirX * 5.5, dirY * 5.5,
-          effDmg * 1.6, 'ipecac_tech_x', this.tearScale * 1.6, false, this.homingTears
+          this.x, this.y, dirX * 4.0, dirY * 4.0,
+          effDmg * 1.6, 'ipecac_tech_x', this.tearScale * 1.6, false, true
         ));
       } else if (this.hasHorns || this.hasMiniBrimstone) {
         projectiles.push(new Projectile(
           this.x, this.y, dirX, dirY,
-          effDmg * 1.8, 'ipecac_brimstone', this.tearScale * 1.5, false, this.homingTears
+          effDmg * 1.8, 'ipecac_brimstone', this.tearScale * 1.5, false, true
         ));
       } else if (this.hasMeowmere) {
         projectiles.push(new Projectile(
-          this.x, this.y, dirX * (this.tearSpeed + 1), dirY * (this.tearSpeed + 1),
+          this.x, this.y, dirX * 4.5, dirY * 4.5,
           effDmg * 1.6, 'ipecac_meowmere', this.tearScale * 1.4, true, true
         ));
       } else {
         projectiles.push(new Projectile(
-          this.x, this.y, dirX * this.tearSpeed, dirY * this.tearSpeed,
-          effDmg * 1.6, 'ipecac_tear', this.tearScale * 1.5, false, this.homingTears
+          this.x, this.y, dirX * 3.8, dirY * 3.8,
+          effDmg * 1.6, 'ipecac_tear', this.tearScale * 1.5, false, true
         ));
       }
       return;
     }
 
-    // CHARA'S KNIFE SYNERGIES!
-    if (this.hasKnife && (this.hasHorns || this.hasMiniBrimstone)) {
+    // 2. TERRA BLADE + MEOWMERE + CHARA'S KNIFE (TRIPLE GOD ZENITH!)
+    if (this.hasTerraBlade && this.hasMeowmere && this.hasKnife) {
+      audio.playMeow();
+      audio.playHit();
+      const baseA = Math.atan2(dirY, dirX);
+      
+      // Central Chara Cat Boomerang + Zenith Core Blade
+      projectiles.push(new Projectile(
+        this.x, this.y, dirX * 9, dirY * 9,
+        effDmg * 2.2, 'meow_knife_proj', this.tearScale * 1.4, true, true
+      ));
+      projectiles.push(new Projectile(
+        this.x, this.y, dirX * (this.tearSpeed + 3), dirY * (this.tearSpeed + 3),
+        effDmg * 2.5, 'zenith_core', this.tearScale * 1.4, true, true
+      ));
+      // 2 Terra Blade Emerald Beams
+      for (let i = -1; i <= 1; i += 2) {
+        const a = baseA + i * 0.22;
+        projectiles.push(new Projectile(
+          this.x, this.y, Math.cos(a) * (this.tearSpeed + 2), Math.sin(a) * (this.tearSpeed + 2),
+          effDmg * 1.8, 'terra_blade', this.tearScale * 1.3, true, this.homingTears
+        ));
+      }
+      // 3 Meowmere Bouncing Cats
+      for (let i = -1; i <= 1; i++) {
+        const a = baseA + i * 0.18;
+        projectiles.push(new Projectile(
+          this.x, this.y, Math.cos(a) * (this.tearSpeed + 1), Math.sin(a) * (this.tearSpeed + 1),
+          effDmg * 1.8, 'meowmere', this.tearScale * 1.3, true, true
+        ));
+      }
+      return;
+    }
+
+    // TERRA BLADE + MEOWMERE (TERRA MEOWMERE ZENITH!)
+    if (this.hasTerraBlade && this.hasMeowmere) {
+      audio.playMeow();
+      audio.playHit();
+      const baseA = Math.atan2(dirY, dirX);
+
+      // Central Zenith Blade Core
+      projectiles.push(new Projectile(
+        this.x, this.y, dirX * (this.tearSpeed + 3), dirY * (this.tearSpeed + 3),
+        effDmg * 2.4, 'zenith_core', this.tearScale * 1.4, true, true
+      ));
+
+      // 2 Terra Blade Beams
+      for (let i = -1; i <= 1; i += 2) {
+        const a = baseA + i * 0.25;
+        projectiles.push(new Projectile(
+          this.x, this.y, Math.cos(a) * (this.tearSpeed + 2), Math.sin(a) * (this.tearSpeed + 2),
+          effDmg * 1.8, 'terra_blade', this.tearScale * 1.3, true, this.homingTears
+        ));
+      }
+      // 2 Meowmere Bouncing Cats
+      for (let i = -1; i <= 1; i += 2) {
+        const a = baseA + i * 0.14;
+        projectiles.push(new Projectile(
+          this.x, this.y, Math.cos(a) * (this.tearSpeed + 1), Math.sin(a) * (this.tearSpeed + 1),
+          effDmg * 1.8, 'meowmere', this.tearScale * 1.3, true, true
+        ));
+      }
+      return;
+    } else if (this.hasTerraBlade) {
+      audio.playHit();
+      projectiles.push(new Projectile(
+        this.x, this.y, dirX * (this.tearSpeed + 2), dirY * (this.tearSpeed + 2),
+        effDmg * 1.5, 'terra_blade', this.tearScale * 1.2, true, this.homingTears
+      ));
+      return;
+    }
+
+    if (this.hasKnife && this.hasMeowmere) {
+      audio.playMeow();
+      audio.playHit();
+      const baseA = Math.atan2(dirY, dirX);
+      projectiles.push(new Projectile(
+        this.x, this.y, dirX * 9, dirY * 9,
+        effDmg * 2.0, 'meow_knife_proj', this.tearScale * 1.4, true, true
+      ));
+      for (let i = -1; i <= 1; i += 2) {
+        const a = baseA + i * 0.22;
+        projectiles.push(new Projectile(
+          this.x, this.y, Math.cos(a) * 7.5, Math.sin(a) * 7.5,
+          effDmg * 1.6, 'meowmere', this.tearScale * 1.3, true, true
+        ));
+      }
+      return;
+    } else if (this.hasKnife && (this.hasHorns || this.hasMiniBrimstone)) {
       audio.playHit();
       // Fan of 5 Chara Knives!
       for (let i = -2; i <= 2; i++) {
@@ -1669,18 +2162,14 @@ class Player {
           effDmg * 1.6, 'chara_knife_proj', this.tearScale * 1.3, false, this.homingTears
         ));
       }
-    } else if (this.hasKnife && this.hasMeowmere) {
-      audio.playMeow();
-      projectiles.push(new Projectile(
-        this.x, this.y, dirX * 9, dirY * 9,
-        effDmg * 1.8, 'chara_knife_proj', this.tearScale * 1.4, true, true
-      ));
+      return;
     } else if (this.hasKnife) {
       audio.playHit();
       projectiles.push(new Projectile(
         this.x, this.y, dirX * 8, dirY * 8,
         effDmg * 1.5, 'chara_knife_proj', this.tearScale * 1.2, false, this.homingTears
       ));
+      return;
     } else if (this.hasMeowmere && (this.hasHorns || this.hasMiniBrimstone)) {
       audio.playMeow();
       projectiles.push(new Projectile(
@@ -1849,12 +2338,35 @@ class Player {
       ctx.restore();
     }
 
-    if (this.hasMeowmere && this.swingTimer > 0) {
+    if (this.swingTimer > 0) {
       ctx.save();
       ctx.translate(this.x, this.y);
-      ctx.rotate((12 - this.swingTimer) * 0.3);
-      if (IMAGES['meowmere_32.png']) {
-        ctx.drawImage(IMAGES['meowmere_32.png'], 10, -20, 32 * this.scale, 32 * this.scale);
+      const sFrac = (15 - this.swingTimer) / 15;
+      const sArc = (sFrac - 0.5) * 2.5;
+      const attackA = (this.knifeDir ? Math.atan2(this.knifeDir.y, this.knifeDir.x) : 0);
+      ctx.rotate(attackA + sArc);
+
+      if (this.hasKnife && IMAGES['chara_knife_64.png']) {
+        ctx.shadowColor = '#ff0033';
+        ctx.shadowBlur = 12;
+        ctx.save();
+        ctx.rotate(Math.PI * 3 / 4);
+        ctx.drawImage(IMAGES['chara_knife_64.png'], 10, -18, 30 * this.scale, 30 * this.scale);
+        ctx.restore();
+      } else if (this.hasTerraBlade && IMAGES['terra_blade_32.png']) {
+        ctx.shadowColor = '#22ff44';
+        ctx.shadowBlur = 12;
+        ctx.save();
+        ctx.rotate(Math.PI / 4);
+        ctx.drawImage(IMAGES['terra_blade_32.png'], 10, -18, 30 * this.scale, 30 * this.scale);
+        ctx.restore();
+      } else if (this.hasMeowmere && IMAGES['meowmere_32.png']) {
+        ctx.shadowColor = '#ff77d6';
+        ctx.shadowBlur = 12;
+        ctx.save();
+        ctx.rotate(Math.PI / 4);
+        ctx.drawImage(IMAGES['meowmere_32.png'], 10, -18, 30 * this.scale, 30 * this.scale);
+        ctx.restore();
       }
       ctx.restore();
     }
@@ -1950,17 +2462,37 @@ class Projectile {
   }
 
   update() {
-    if (this.type === 'ipecac_tear' || this.type === 'ipecac_meowmere' || this.type === 'ipecac_knife') {
+    if (this.type === 'ipecac_tear' || this.type === 'ipecac_meowmere' || this.type === 'ipecac_knife' || this.type === 'ipecac_terra_blade') {
+      if (this.homing && enemies.length > 0) {
+        let nearest = null;
+        let minDist = 9999;
+        enemies.forEach(e => {
+          const d = Math.hypot(e.x - this.x, e.y - this.y);
+          if (d < minDist) { minDist = d; nearest = e; }
+        });
+        if (nearest) {
+          const targetAngle = Math.atan2(nearest.y - this.y, nearest.x - this.x);
+          const speed = Math.hypot(this.vx, this.vy);
+          this.vx += Math.cos(targetAngle) * 0.7;
+          this.vy += Math.sin(targetAngle) * 0.7;
+          const newSpeed = Math.hypot(this.vx, this.vy);
+          if (newSpeed > 0) {
+            this.vx = (this.vx / newSpeed) * speed;
+            this.vy = (this.vy / newSpeed) * speed;
+          }
+        }
+      }
+
       this.x += this.vx;
       this.y += this.vy;
       this.life--;
 
-      if (this.type === 'ipecac_meowmere' && Math.random() < 0.4) {
+      if ((this.type === 'ipecac_meowmere' || this.type === 'ipecac_terra_blade') && Math.random() < 0.4) {
         particles.push(new Particle(this.x, this.y, '#22ff44', 4, 0.8));
       }
 
       enemies.forEach(e => {
-        if (!this.exploded && Math.hypot(e.x - this.x, e.y - this.y) < e.radius + this.radius + 6) {
+        if (!this.exploded && Math.hypot(e.x - this.x, e.y - this.y) < e.radius + this.radius + 8) {
           this.explodeIpecac();
           this.life = 0;
         }
@@ -1971,19 +2503,61 @@ class Projectile {
       return;
     }
 
+    // CHARA'S KNIFE MELEE SLASH (Locked to player's hand!)
+    if (this.type === 'chara_knife_melee') {
+      if (player) {
+        this.x = player.x + (this.offsetX || 0);
+        this.y = player.y + (this.offsetY || 0);
+      }
+      this.life--;
+
+      if (Math.random() < 0.8) {
+        const pAngle = (this.attackAngle || 0) + (Math.random() - 0.5) * 1.5;
+        const pDist = 20 + Math.random() * 20;
+        particles.push(new Particle(
+          this.x + Math.cos(pAngle) * pDist,
+          this.y + Math.sin(pAngle) * pDist,
+          Math.random() < 0.3 ? '#ffffff' : '#ff0033',
+          3, 0.8
+        ));
+      }
+
+      enemies.forEach(e => {
+        e.knifeHitCooldown = e.knifeHitCooldown || 0;
+        if (e.knifeHitCooldown <= 0) {
+          if (Math.hypot(e.x - this.x, e.y - this.y) < e.radius + 40 * this.scale) {
+            e.takeDamage(this.damage);
+            e.knifeHitCooldown = 10;
+
+            if (player && player.hasMeowmere) {
+              audio.playMeow();
+              for (let i = 0; i < 8; i++) {
+                const colors = ['#ff77cc', '#33ffff', '#ffff55', '#ff1144', '#a066ff'];
+                particles.push(new Particle(e.x, e.y, colors[Math.floor(Math.random() * colors.length)], 4, 1.2));
+              }
+            }
+          }
+        }
+      });
+      return;
+    }
+
     // CHARA'S KNIFE BOOMERANG PROJ!
     if (this.type === 'chara_knife_proj') {
       if (this.life > this.maxLife / 2) {
         this.x += this.vx;
         this.y += this.vy;
       } else {
-        // Return boomerang back to player!
         if (player) {
           this.x += (player.x - this.x) * 0.15;
           this.y += (player.y - this.y) * 0.15;
         }
       }
       this.life--;
+
+      if (Math.random() < 0.5) {
+        particles.push(new Particle(this.x, this.y, '#ff0033', 3, 0.6));
+      }
 
       enemies.forEach(e => {
         e.laserHitCooldown = e.laserHitCooldown || 0;
@@ -1994,6 +2568,115 @@ class Projectile {
           }
         }
       });
+      return;
+    }
+
+    // MEOW KNIFE BOOMERANG PROJ!
+    if (this.type === 'meow_knife_proj') {
+      if (this.life > this.maxLife / 2) {
+        this.x += this.vx;
+        this.y += this.vy;
+      } else {
+        if (player) {
+          this.x += (player.x - this.x) * 0.15;
+          this.y += (player.y - this.y) * 0.15;
+        }
+      }
+      this.life--;
+
+      if (Math.random() < 0.6) {
+        const colors = ['#ff0055', '#ff77d6', '#33ffff', '#ffeb3b'];
+        particles.push(new Particle(this.x, this.y, colors[Math.floor(Math.random() * colors.length)], 3, 0.6));
+      }
+
+      if (this.life % 10 === 0) {
+        const a = Math.random() * Math.PI * 2;
+        projectiles.push(new Projectile(this.x, this.y, Math.cos(a) * 6, Math.sin(a) * 6, this.damage * 0.5, 'meowmere', 0.9, true, true));
+      }
+
+      enemies.forEach(e => {
+        e.laserHitCooldown = e.laserHitCooldown || 0;
+        if (e.laserHitCooldown <= 0) {
+          if (Math.hypot(e.x - this.x, e.y - this.y) < e.radius + 28 * this.scale) {
+            e.takeDamage(this.damage);
+            e.laserHitCooldown = 8;
+            audio.playMeow();
+            for (let i = 0; i < 6; i++) {
+              particles.push(new Particle(e.x, e.y, '#ff77d6', 4, 1.0));
+            }
+          }
+        }
+      });
+      return;
+    }
+
+    // ZENITH CORE BLADE!
+    if (this.type === 'zenith_core') {
+      if (this.homing && enemies.length > 0) {
+        let nearest = null;
+        let minDist = 9999;
+        enemies.forEach(e => {
+          const d = Math.hypot(e.x - this.x, e.y - this.y);
+          if (d < minDist) { minDist = d; nearest = e; }
+        });
+        if (nearest) {
+          const targetAngle = Math.atan2(nearest.y - this.y, nearest.x - this.x);
+          const speed = Math.hypot(this.vx, this.vy);
+          this.vx += Math.cos(targetAngle) * 0.8;
+          this.vy += Math.sin(targetAngle) * 0.8;
+          const newSpeed = Math.hypot(this.vx, this.vy);
+          if (newSpeed > 0) {
+            this.vx = (this.vx / newSpeed) * speed;
+            this.vy = (this.vy / newSpeed) * speed;
+          }
+          this.angle = Math.atan2(this.vy, this.vx);
+        }
+      }
+
+      this.x += this.vx;
+      this.y += this.vy;
+      this.life--;
+
+      if (Math.random() < 0.7) {
+        const col = Math.random() < 0.5 ? '#22ff66' : '#ff33aa';
+        particles.push(new Particle(this.x, this.y, col, 4, 0.8));
+      }
+
+      enemies.forEach(e => {
+        e.laserHitCooldown = e.laserHitCooldown || 0;
+        if (e.laserHitCooldown <= 0) {
+          if (Math.hypot(e.x - this.x, e.y - this.y) < e.radius + 28 * this.scale) {
+            e.takeDamage(this.damage);
+            e.laserHitCooldown = 8;
+            audio.playHit();
+            for (let i = 0; i < 8; i++) {
+              const pcol = i % 2 === 0 ? '#22ff66' : '#ff33aa';
+              particles.push(new Particle(e.x, e.y, pcol, 5, 1.2));
+            }
+          }
+        }
+      });
+
+      const minX = OFFSET_X + TILE_SIZE / 2;
+      const maxX = OFFSET_X + (ROOM_GRID_W - 0.5) * TILE_SIZE;
+      const minY = OFFSET_Y + TILE_SIZE / 2;
+      const maxY = OFFSET_Y + (ROOM_GRID_H - 0.5) * TILE_SIZE;
+
+      let hitWall = false;
+      if (this.x <= minX || this.x >= maxX) { this.vx = -this.vx; hitWall = true; }
+      if (this.y <= minY || this.y >= maxY) { this.vy = -this.vy; hitWall = true; }
+      if (hitWall) {
+        if (this.bouncing && this.bouncesLeft > 0) {
+          this.bouncesLeft--;
+          audio.playMeow();
+          this.angle = Math.atan2(this.vy, this.vx);
+          for (let i = 0; i < 10; i++) {
+            particles.push(new Particle(this.x, this.y, i % 2 === 0 ? '#22ff66' : '#ff33aa', 4, 1.0));
+          }
+        } else {
+          this.life = 0;
+        }
+      }
       return;
     }
 
@@ -2103,6 +2786,21 @@ class Projectile {
     this.y += this.vy;
     this.life--;
 
+    if (!this.isEnemyProj && player && player.hasGodhead) {
+      enemies.forEach(e => {
+        e.godheadCooldown = e.godheadCooldown || 0;
+        if (e.godheadCooldown <= 0) {
+          if (Math.hypot(e.x - this.x, e.y - this.y) < e.radius + this.radius * 2.8 + 15) {
+            e.takeDamage(this.damage * 0.4);
+            e.godheadCooldown = 8;
+            for (let i = 0; i < 2; i++) {
+              particles.push(new Particle(e.x, e.y, '#ffffaa', 3, 0.8));
+            }
+          }
+        }
+      });
+    }
+
     if (this.type === 'meowmere' && Math.random() < 0.6) {
       const colors = ['#ff77cc', '#33ffff', '#ffff55', '#bb66ff', '#ff1144'];
       const col = colors[Math.floor(Math.random() * colors.length)];
@@ -2154,18 +2852,120 @@ class Projectile {
       ctx.beginPath();
       ctx.arc(this.x - 3, this.y - 3, this.radius * 0.5, 0, Math.PI * 2);
       ctx.fill();
-    } else if (this.type === 'chara_knife_proj') {
+    } else if (this.type === 'ipecac_terra_blade') {
       ctx.translate(this.x, this.y);
-      ctx.rotate((this.maxLife - this.life) * 0.4);
+      ctx.rotate(this.angle + Math.PI / 4);
+      ctx.shadowColor = '#22ff44';
+      ctx.shadowBlur = 22;
+      if (IMAGES['terra_blade_32.png']) {
+        ctx.drawImage(IMAGES['terra_blade_32.png'], -18, -18, 36 * this.scale, 36 * this.scale);
+      } else {
+        ctx.fillStyle = '#22ff44';
+        ctx.fillRect(-15, -15, 30, 30);
+      }
+    } else if (this.type === 'chara_knife_melee') {
+      ctx.translate(this.x, this.y);
+      const progress = 1 - (this.life / (this.maxLife || 12));
+      const sweepArc = (progress - 0.5) * 2.5;
+      const attackA = (this.attackAngle !== undefined ? this.attackAngle : this.angle);
+      ctx.rotate(attackA + sweepArc);
+
+      ctx.save();
+      ctx.strokeStyle = '#ff0033';
+      ctx.lineWidth = 7 * this.scale;
+      ctx.shadowColor = '#ff0033';
+      ctx.shadowBlur = 24;
+      ctx.beginPath();
+      ctx.arc(0, 0, 36 * this.scale, -0.85, 0.85);
+      ctx.stroke();
+
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 2.5 * this.scale;
+      ctx.shadowBlur = 10;
+      ctx.beginPath();
+      ctx.arc(0, 0, 36 * this.scale, -0.65, 0.65);
+      ctx.stroke();
+
+      if (IMAGES['undertale_slash.png']) {
+        ctx.save();
+        ctx.globalAlpha = 0.85;
+        const uSize = 42 * this.scale;
+        ctx.drawImage(IMAGES['undertale_slash.png'], -uSize / 2, -uSize / 2, uSize, uSize);
+        ctx.restore();
+      }
+      ctx.restore();
+
+      const kSize = 32 * this.scale;
       ctx.shadowColor = '#ff0033';
       ctx.shadowBlur = 18;
-      if (IMAGES['undertale_slash.png']) {
-        ctx.drawImage(IMAGES['undertale_slash.png'], -28 * this.scale, -28 * this.scale, 56 * this.scale, 56 * this.scale);
-      } else if (IMAGES['chara_knife.png']) {
-        ctx.drawImage(IMAGES['chara_knife.png'], -20, -20, 40 * this.scale, 40 * this.scale);
+      if (IMAGES['chara_knife_64.png']) {
+        ctx.save();
+        ctx.rotate(Math.PI * 3 / 4);
+        ctx.drawImage(IMAGES['chara_knife_64.png'], -kSize / 2, -kSize / 2, kSize, kSize);
+        ctx.restore();
       } else {
         ctx.fillStyle = '#ff0033';
-        ctx.fillRect(-15, -15, 30, 30);
+        ctx.fillRect(0, -4 * this.scale, 30 * this.scale, 8 * this.scale);
+      }
+    } else if (this.type === 'chara_knife_proj') {
+      ctx.translate(this.x, this.y);
+      ctx.rotate(this.angle + Math.PI * 3 / 4);
+      ctx.shadowColor = '#ff0033';
+      ctx.shadowBlur = 18;
+
+      const kSize = 32 * this.scale;
+      if (IMAGES['chara_knife_64.png']) {
+        ctx.drawImage(IMAGES['chara_knife_64.png'], -kSize / 2, -kSize / 2, kSize, kSize);
+      } else {
+        ctx.fillStyle = '#ff0033';
+        ctx.fillRect(-kSize / 2, -kSize / 2, kSize, kSize);
+      }
+    } else if (this.type === 'meow_knife_proj') {
+      ctx.translate(this.x, this.y);
+      ctx.rotate(this.angle + Math.PI * 3 / 4);
+      ctx.shadowColor = '#ff00aa';
+      ctx.shadowBlur = 22;
+
+      const kSize = 36 * this.scale;
+      if (IMAGES['chara_knife_64.png']) {
+        ctx.drawImage(IMAGES['chara_knife_64.png'], -kSize / 2, -kSize / 2, kSize, kSize);
+      }
+      if (IMAGES['meowmere_32.png']) {
+        ctx.save();
+        ctx.globalAlpha = 0.7;
+        ctx.drawImage(IMAGES['meowmere_32.png'], -14 * this.scale, -14 * this.scale, 28 * this.scale, 28 * this.scale);
+        ctx.restore();
+      }
+    } else if (this.type === 'zenith_core') {
+      ctx.translate(this.x, this.y);
+      ctx.rotate(this.angle + Math.PI / 4);
+
+      const spin = Date.now() * 0.01;
+      ctx.save();
+      ctx.strokeStyle = '#22ff66';
+      ctx.lineWidth = 3.5 * this.scale;
+      ctx.shadowColor = '#22ff66';
+      ctx.shadowBlur = 18;
+      ctx.beginPath();
+      ctx.arc(0, 0, 22 * this.scale, spin, spin + Math.PI * 1.2);
+      ctx.stroke();
+
+      ctx.strokeStyle = '#ff33aa';
+      ctx.shadowColor = '#ff33aa';
+      ctx.beginPath();
+      ctx.arc(0, 0, 22 * this.scale, spin + Math.PI, spin + Math.PI * 2.2);
+      ctx.stroke();
+      ctx.restore();
+
+      const sz = 38 * this.scale;
+      if (IMAGES['terra_blade_32.png']) {
+        ctx.drawImage(IMAGES['terra_blade_32.png'], -sz / 2, -sz / 2, sz, sz);
+      }
+      if (IMAGES['meowmere_32.png']) {
+        ctx.save();
+        ctx.rotate(Math.PI / 2);
+        ctx.drawImage(IMAGES['meowmere_32.png'], -sz / 2, -sz / 2, sz, sz);
+        ctx.restore();
       }
     } else if (this.type === 'tech_x' || this.type === 'meow_tech_x' || this.type === 'brim_tech_x') {
       const ringColor = isRainbow ? rainbowColor : (this.type === 'meow_tech_x' ? '#ff77d6' : (this.type === 'brim_tech_x' ? '#ff0033' : '#00e5ff'));
@@ -2225,6 +3025,17 @@ class Projectile {
       }
       ctx.stroke();
       ctx.restore();
+    } else if (this.type === 'terra_blade') {
+      ctx.translate(this.x, this.y);
+      ctx.rotate(this.angle + Math.PI / 4);
+      ctx.shadowColor = '#22ff44';
+      ctx.shadowBlur = 18;
+      if (IMAGES['terra_blade_32.png']) {
+        ctx.drawImage(IMAGES['terra_blade_32.png'], -16, -16, 32 * this.scale, 32 * this.scale);
+      } else {
+        ctx.fillStyle = '#22ff44';
+        ctx.fillRect(-15, -15, 30, 30);
+      }
     } else if (this.type === 'meowmere') {
       ctx.translate(this.x, this.y);
       ctx.rotate(this.angle + Math.PI / 4);
@@ -2425,6 +3236,22 @@ class Enemy {
       this.hp = 650;
       this.maxHp = 650;
       this.speed = 1.1;
+    } else if (type === 'boss_mister_666') {
+      this.sheet = 'boss_mister_666.png';
+      this.isBoss = true;
+      this.bossName = '👹 МИСТЕР 666 (MISTER 666)';
+      this.radius = 58;
+      this.hp = 900;
+      this.maxHp = 900;
+      this.speed = 1.2;
+    } else if (type === 'dummy') {
+      this.sheet = 'char_builder.png';
+      this.isBoss = true;
+      this.bossName = '🎯 ТРЕНИРОВОЧНЫЙ МАНЕКЕН (9999 HP)';
+      this.radius = 28;
+      this.hp = 9999;
+      this.maxHp = 9999;
+      this.speed = 0;
     } else if (type === 'boss_satan') {
       this.sheet = 'sin_wrath.png';
       this.isBoss = true;
@@ -2443,6 +3270,22 @@ class Enemy {
       this.hp = 1000;
       this.maxHp = 1000;
       this.speed = 1.4;
+    } else if (type === 'boss_jarkhnidza') {
+      this.sheet = 'Jarkhnidza.png';
+      this.isBoss = true;
+      this.bossName = '🦣 ЯРХНИДЗА (ФАЗА 1)';
+      this.radius = 55;
+      this.hp = 800;
+      this.maxHp = 800;
+      this.speed = 1.3;
+    } else if (type === 'boss_jarkhne') {
+      this.sheet = 'Jarkhne.png';
+      this.isBoss = true;
+      this.bossName = '💥 ВЕЛИКИЙ ЯРХНЕ (ФАЗА 2 - HUSH BULLET HELL) 💥';
+      this.radius = 65;
+      this.hp = 1800;
+      this.maxHp = 1800;
+      this.speed = 1.1;
     }
 
     this.dir = 0;
@@ -2455,10 +3298,12 @@ class Enemy {
 
   update() {
     if (!player) return;
+    if (this.type === 'dummy' || this.isDummy) return;
 
     if (this.laserHitCooldown > 0) this.laserHitCooldown--;
     if (this.knifeHitCooldown > 0) this.knifeHitCooldown--;
     if (this.techHitCooldown > 0) this.techHitCooldown--;
+    if (this.godheadCooldown > 0) this.godheadCooldown--;
 
     if (roomGraceTimer > 27) return;
 
@@ -2586,6 +3431,21 @@ class Enemy {
           enemies.push(new Enemy(this.x - 25, this.y, 'bunny'));
         }
       }
+    } else if (this.type === 'boss_mister_666') {
+      if (this.shootTimer % 25 === 0) {
+        for (let i = 0; i < 6; i++) {
+          const a = (i * Math.PI) / 3 + (this.animTimer * 0.05);
+          enemyProjectiles.push(new Projectile(this.x, this.y, Math.cos(a) * 5.5, Math.sin(a) * 5.5, 1, 'enemy_blood', 1.3));
+        }
+      }
+      if (this.shootTimer >= 95) {
+        this.shootTimer = 0;
+        for (let i = -2; i <= 2; i += 2) {
+          const a = angle + i * 0.25;
+          enemyProjectiles.push(new Projectile(this.x, this.y, Math.cos(a) * 7.0, Math.sin(a) * 7.0, 1, 'enemy_cyan', 1.4));
+        }
+        if (Math.random() < 0.5) roomObjects.push(new Bomb(this.x, this.y));
+      }
     } else if (this.type === 'boss_satan') {
       if (this.shootTimer % 30 === 0) {
         for (let i = 0; i < 12; i++) {
@@ -2614,6 +3474,39 @@ class Enemy {
           const a = angle + i * 0.2;
           enemyProjectiles.push(new Projectile(this.x, this.y, Math.cos(a) * 7.5, Math.sin(a) * 7.5, 1, 'enemy_blood', 1.5));
         }
+      }
+    } else if (this.type === 'boss_jarkhnidza') {
+      if (this.shootTimer % 30 === 0) {
+        for (let i = 0; i < 8; i++) {
+          const a = (i * Math.PI) / 4;
+          enemyProjectiles.push(new Projectile(this.x, this.y, Math.cos(a) * 5.0, Math.sin(a) * 5.0, 1, 'enemy_blood', 1.3));
+        }
+      }
+      if (this.shootTimer >= 90) {
+        this.shootTimer = 0;
+        if (enemies.length < 5) {
+          enemies.push(new Enemy(this.x + 30, this.y, 'ram_mob_1'));
+          enemies.push(new Enemy(this.x - 30, this.y, 'ram_mob_2'));
+        }
+      }
+    } else if (this.type === 'boss_jarkhne') {
+      if (this.shootTimer % 12 === 0) {
+        for (let i = 0; i < 16; i++) {
+          const a = (i * Math.PI) / 8 + (this.animTimer * 0.08);
+          const proj = new Projectile(this.x, this.y, Math.cos(a) * 5.2, Math.sin(a) * 5.2, 1, 'enemy_cyan', 1.3);
+          proj.continuum = true;
+          enemyProjectiles.push(proj);
+        }
+      }
+      if (this.shootTimer >= 90) {
+        this.shootTimer = 0;
+        for (let i = 0; i < 12; i++) {
+          const a = (i * Math.PI) / 6;
+          const proj = new Projectile(this.x, this.y, Math.cos(a) * 6.0, Math.sin(a) * 6.0, 1, 'enemy_blood', 1.4);
+          proj.continuum = true;
+          enemyProjectiles.push(proj);
+        }
+        if (Math.random() < 0.5) roomObjects.push(new Bomb(this.x, this.y));
       }
     } else if (this.type === 'sosal' && this.shootTimer >= 60) {
       this.shootTimer = 0;
@@ -2717,7 +3610,16 @@ class Enemy {
       }
 
       if (this.isBoss) {
-        if (currentFloorIdx < FLOORS.length - 1) {
+        if (this.type === 'boss_jarkhnidza') {
+          showItemBanner('ЯРХНИДЗА ПОВЕРЖЕН!', 'ПРОБУЖДАЕТСЯ ВЕЛИКИЙ ЯРХНЕ! 💥', RAW_ASSETS['Jarkhne.png'] || RAW_ASSETS['meowmere_64.png']);
+          const phase2 = new Enemy(CANVAS_W / 2, CANVAS_H / 2 - 20, 'boss_jarkhne');
+          enemies.push(phase2);
+        } else if (this.type === 'boss_jarkhne') {
+          unlockCharacter('unlocked_jarkhne');
+          showItemBanner('ВЕЛИКИЙ ЯРХНЕ ПОВЕРЖЕН!', 'Разблокирован ВЕЛИКИЙ ЯРХНЕ + Открыт Портал Делириума!', RAW_ASSETS['Jarkhne.png'] || RAW_ASSETS['meowmere_64.png']);
+          const portalObj = new DeliriumPortal(CANVAS_W / 2, OFFSET_Y + 10);
+          currentRoom.objects.push(portalObj);
+        } else if (currentFloorIdx < FLOORS.length - 1) {
           const trapdoorObj = new Trapdoor(CANVAS_W / 2, CANVAS_H / 2);
           currentRoom.objects.push(trapdoorObj);
           
@@ -2726,7 +3628,10 @@ class Enemy {
           p.itemId = keys[Math.floor(Math.random() * keys.length)];
           currentRoom.pickups.push(p);
 
-          if (Math.random() < 0.5) {
+          if (currentFloorIdx === 6) {
+            const holeObj = new HushEntrance(CANVAS_W / 2, OFFSET_Y + TILE_SIZE + 10);
+            currentRoom.objects.push(holeObj);
+          } else if (Math.random() < 0.5) {
             const specType = Math.random() < 0.5 ? 'devil' : 'angel';
             const doorObj = new SpecialDoor(CANVAS_W / 2 - 120, OFFSET_Y, specType);
             currentRoom.objects.push(doorObj);
@@ -2766,7 +3671,13 @@ class Enemy {
 
     const img = IMAGES[this.sheet];
     if (img) {
-      if (this.type === 'boss_mega_satan') {
+      if (this.type === 'boss_mister_666') {
+        const frameHeight = 151;
+        const frameWidth = 151;
+        const sy = (this.animFrame % 9) * frameHeight;
+        const size = 110 * this.scale;
+        ctx.drawImage(img, 0, sy, frameWidth, frameHeight, this.x - size / 2, this.y - size / 2, size, size);
+      } else if (this.type === 'boss_mega_satan') {
         const size = 160;
         const bobY = Math.sin(Date.now() / 250) * 8;
         ctx.drawImage(img, this.x - size / 2, this.y - size / 2 + bobY, size, size);
@@ -2803,6 +3714,104 @@ class Enemy {
       ctx.textAlign = 'center';
       ctx.fillText(this.bossName || 'БОСС', CANVAS_W / 2, 15);
     }
+  }
+}
+
+// --- HUSH ENTRANCE HOLE IN WALL ---
+class HushEntrance {
+  constructor(x, y) {
+    this.x = x;
+    this.y = y;
+    this.radius = 28;
+    this.playerNear = false;
+  }
+  update() {
+    if (roomGraceTimer > 30) return;
+    const dist = Math.hypot(player.x - this.x, player.y - this.y);
+    this.playerNear = dist < player.radius + this.radius + 25;
+
+    if (this.playerNear && (keysHeld['KeyE'] || keysHeld['KeyF'] || keysHeld['Space'] || dist < 30)) {
+      keysHeld['KeyE'] = false;
+      keysHeld['KeyF'] = false;
+      keysHeld['Space'] = false;
+      enterBlueWomb();
+    }
+  }
+  draw(ctx) {
+    ctx.save();
+    ctx.fillStyle = '#051020';
+    ctx.beginPath();
+    ctx.ellipse(this.x, this.y, 35, 22, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#00aaff';
+    ctx.lineWidth = 3;
+    ctx.shadowColor = '#00f0ff';
+    ctx.shadowBlur = 15;
+    ctx.stroke();
+
+    ctx.fillStyle = '#00f0ff';
+    ctx.font = 'bold 12px monospace';
+    ctx.textAlign = 'center';
+    if (this.playerNear) {
+      ctx.fillText('[ ВОЙТИ НА ЭТАЖ ??? (E) ]', this.x, this.y + 36);
+    } else {
+      ctx.fillText('🌀 ДЫРА В СТЕНЕ НА ЭТАЖ ???', this.x, this.y + 36);
+    }
+    ctx.restore();
+  }
+}
+
+// --- DELIRIUM VOID PORTAL ---
+class DeliriumPortal {
+  constructor(x, y) {
+    this.x = x;
+    this.y = y;
+    this.radius = 32;
+    this.playerNear = false;
+  }
+  update() {
+    if (roomGraceTimer > 30) return;
+    const dist = Math.hypot(player.x - this.x, player.y - this.y);
+    this.playerNear = dist < player.radius + this.radius + 15;
+
+    if (this.playerNear && (keysHeld['KeyE'] || keysHeld['KeyF'] || keysHeld['Space'] || dist < 22)) {
+      keysHeld['KeyE'] = false;
+      keysHeld['KeyF'] = false;
+      keysHeld['Space'] = false;
+      enterVoidFromPortal();
+    }
+  }
+  draw(ctx) {
+    ctx.save();
+    const rot = (Date.now() / 200) % (Math.PI * 2);
+    ctx.translate(this.x, this.y);
+    ctx.rotate(rot);
+
+    ctx.fillStyle = '#100520';
+    ctx.beginPath();
+    ctx.arc(0, 0, 32, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = '#ff00aa';
+    ctx.lineWidth = 4;
+    ctx.shadowColor = '#ff00ff';
+    ctx.shadowBlur = 20;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 32, 18, 0, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.restore();
+
+    ctx.save();
+    ctx.fillStyle = '#ff77d6';
+    ctx.font = 'bold 12px monospace';
+    ctx.textAlign = 'center';
+    if (this.playerNear) {
+      ctx.fillText('[ ВОЙТИ В ПОРТАЛ К ДЕЛИРИУМУ (E) ]', this.x, this.y + 44);
+    } else {
+      ctx.fillText('🌌 ПОРТАЛ В THE VOID К ДЕЛИРИУМУ', this.x, this.y + 44);
+    }
+    ctx.restore();
   }
 }
 
@@ -2878,27 +3887,41 @@ function enterSpecialRoom(type) {
   specRoom.objects.push(retDoor);
 
   if (type === 'devil') {
-    showItemBanner('СДЕЛКА С ДЬЯВОЛОМ!', 'Нажмите E чтобы отдать 2 Сердца за предмет!', RAW_ASSETS['meowmere_64.png']);
+    window.devilVisits = (window.devilVisits || 0) + 1;
+    if (window.devilVisits >= 3) unlockCharacter('unlocked_sosal_devil');
+    showItemBanner('СДЕЛКА С ДЬЯВОЛОМ!', 'Нажмите E чтобы отдать 2 Сердца за предмет!', RAW_ASSETS['gif_devil.gif'] || RAW_ASSETS['meowmere_64.png']);
     
+    const devilPool = ['chara_knife', 'tech_x', 'the_pact', 'abaddon', 'lord_of_the_pit', 'eye_of_belial', 'horns', 'ipecac'];
+    const d1 = devilPool[Math.floor(Math.random() * devilPool.length)];
+    let d2 = devilPool[Math.floor(Math.random() * devilPool.length)];
+    if (d2 === d1) d2 = 'abaddon';
+
     const p1 = new Pickup(CANVAS_W / 2 - 80, CANVAS_H / 2, 'pedestal_item');
-    p1.itemId = 'chara_knife';
+    p1.itemId = d1;
     p1.cost = 2;
     specRoom.pickups.push(p1);
 
     const p2 = new Pickup(CANVAS_W / 2 + 80, CANVAS_H / 2, 'pedestal_item');
-    p2.itemId = 'tech_x';
+    p2.itemId = d2;
     p2.cost = 2;
     specRoom.pickups.push(p2);
   } else {
+    window.angelVisits = (window.angelVisits || 0) + 1;
+    if (window.angelVisits >= 2) unlockCharacter('unlocked_angel');
     showItemBanner('АНГЕЛЬСКАЯ КОМНАТА!', 'Благословение Ангела — Нажмите E чтобы взять!', RAW_ASSETS['meowmere_64.png']);
     
+    const angelPool = ['sacred_heart', 'godhead', 'halo', 'relic', 'halo_of_flies', 'guardian_angel', 'stigmata', 'purity'];
+    const a1 = angelPool[Math.floor(Math.random() * angelPool.length)];
+    let a2 = angelPool[Math.floor(Math.random() * angelPool.length)];
+    if (a2 === a1) a2 = 'godhead';
+
     const p1 = new Pickup(CANVAS_W / 2 - 80, CANVAS_H / 2, 'pedestal_item');
-    p1.itemId = 'sacred_heart';
+    p1.itemId = a1;
     p1.cost = 0;
     specRoom.pickups.push(p1);
 
     const p2 = new Pickup(CANVAS_W / 2 + 80, CANVAS_H / 2, 'pedestal_item');
-    p2.itemId = 'godhead';
+    p2.itemId = a2;
     p2.cost = 0;
     specRoom.pickups.push(p2);
   }
@@ -3284,6 +4307,7 @@ class Pickup {
     if (this.playerNear && (this.type === 'coin' || this.type === 'heart' || this.type === 'bomb' || this.type === 'key')) {
       if (this.type === 'coin') {
         player.coins++;
+        if (player.coins >= 50) unlockCharacter('unlocked_cat_warrior');
         audio.playPickup();
         return true;
       } else if (this.type === 'heart') {
@@ -3525,6 +4549,8 @@ function enterRoom() {
   roomGraceTimer = 72;
   player.invulnTimer = 72;
 
+  saveGameState();
+
   audio.setTrackType(currentRoom.type);
 
   if (!currentRoom.cleared && currentRoom.enemiesToSpawn.length > 0) {
@@ -3537,10 +4563,11 @@ function enterRoom() {
       enemies.push(new Enemy(rx, ry, etype));
     });
 
+    const floorName = currentFloorIdx === 99 ? BLUE_WOMB_FLOOR.name : (FLOORS[currentFloorIdx] ? FLOORS[currentFloorIdx].name : 'ПОДЗЕМЕЛЬЕ');
     if (currentRoom.type === 'sin') {
       showItemBanner('СМЕРТНЫЙ ГРЕХ!', 'Остерегайтесь атак мини-босса!', RAW_ASSETS['sin_' + (currentRoom.sinType || 'wrath') + '_64.png']);
     } else if (currentRoom.type === 'boss') {
-      showItemBanner('БОСС ЭТАЖА!', FLOORS[currentFloorIdx].name, RAW_ASSETS['meowmere_64.png']);
+      showItemBanner('БОСС ЭТАЖА!', floorName, RAW_ASSETS['meowmere_64.png']);
     }
   }
 
@@ -3576,6 +4603,7 @@ function enterRoom() {
 
   if (currentRoom.type === 'planetarium' && !currentRoom.itemSpawned) {
     currentRoom.itemSpawned = true;
+    unlockCharacter('unlocked_purple_phantom');
     const p = new Pickup(CANVAS_W / 2, CANVAS_H / 2, 'pedestal_item');
     const planItems = ['jupiter', 'the_sun', 'spoon_bender', 'playdough_cookie', 'godhead', 'chara_knife'];
     p.itemId = planItems[Math.floor(Math.random() * planItems.length)];
@@ -3585,10 +4613,69 @@ function enterRoom() {
 }
 
 // --- FLOOR ADVANCEMENT ---
+function enterBlueWomb() {
+  currentFloorIdx = 99;
+  audio.playTrapdoor();
+
+  document.getElementById('floor-title-hud').innerText = BLUE_WOMB_FLOOR.name;
+  document.getElementById('floor-banner-name').innerText = BLUE_WOMB_FLOOR.name;
+  
+  const banner = document.getElementById('floor-banner');
+  banner.classList.add('active');
+
+  setTimeout(() => {
+    generateHushLairDungeon();
+    enterRoom();
+    banner.classList.remove('active');
+  }, 1200);
+}
+
+function generateHushLairDungeon() {
+  dungeonMap = Array(5).fill(0).map(() => Array(5).fill(null));
+  
+  const hushRoom = {
+    x: 2,
+    y: 2,
+    type: 'boss',
+    cleared: false,
+    visited: true,
+    doors: { top: false, bottom: false, left: false, right: false },
+    tiles: Array(ROOM_GRID_H).fill(0).map(() => Array(ROOM_GRID_W).fill(0)),
+    enemiesToSpawn: ['boss_jarkhnidza'],
+    objects: [],
+    pickups: []
+  };
+
+  dungeonMap[2][2] = hushRoom;
+  currentRoomPos = { x: 2, y: 2 };
+  currentRoom = hushRoom;
+}
+
+function enterVoidFromPortal() {
+  currentFloorIdx = 8;
+  audio.playTrapdoor();
+
+  const floor = FLOORS[8];
+  document.getElementById('floor-title-hud').innerText = floor.name;
+  document.getElementById('floor-banner-name').innerText = floor.name;
+  
+  const banner = document.getElementById('floor-banner');
+  banner.classList.add('active');
+
+  setTimeout(() => {
+    generateDungeon();
+    enterRoom();
+    banner.classList.remove('active');
+  }, 1200);
+}
+
 function nextFloor() {
   if (currentFloorIdx < FLOORS.length - 1) {
     currentFloorIdx++;
     audio.playTrapdoor();
+
+    if (currentFloorIdx >= 3) unlockCharacter('unlocked_sosal_devil');
+    if (currentFloorIdx >= 7) unlockCharacter('unlocked_ram_knight');
 
     const floor = FLOORS[currentFloorIdx];
     document.getElementById('floor-title-hud').innerText = floor.name;
@@ -3643,6 +4730,21 @@ function updateHUD() {
 function drawMinimap() {
   if (!miniCtx) return;
   miniCtx.clearRect(0, 0, 100, 100);
+
+  if (currentFloorIdx === 99) {
+    miniCtx.fillStyle = '#0b2038';
+    miniCtx.fillRect(10, 10, 80, 80);
+    miniCtx.strokeStyle = '#00f0ff';
+    miniCtx.lineWidth = 2;
+    miniCtx.strokeRect(10, 10, 80, 80);
+
+    miniCtx.fillStyle = '#ffffff';
+    miniCtx.font = 'bold 10px monospace';
+    miniCtx.textAlign = 'center';
+    miniCtx.fillText('🌀 HUSH', 50, 48);
+    miniCtx.fillText('LAIR ???', 50, 62);
+    return;
+  }
 
   const cellSize = 15;
   const startX = 8;
@@ -3858,8 +4960,6 @@ function update() {
   for (let i = pickups.length - 1; i >= 0; i--) {
     const pk = pickups[i];
     if (pk.update()) {
-      const idxInRoom = currentRoom.pickups.indexOf(pk);
-      if (idxInRoom >= 0) currentRoom.pickups.splice(idxInRoom, 1);
       pickups.splice(i, 1);
     }
   }
@@ -3890,7 +4990,7 @@ function render() {
     ctx.translate(shiftX, shiftY);
   }
 
-  const floor = FLOORS[currentFloorIdx];
+  const floor = (currentFloorIdx === 99) ? BLUE_WOMB_FLOOR : (FLOORS[currentFloorIdx] || FLOORS[0]);
 
   ctx.fillStyle = currentRoom.type === 'devil' ? '#180308' : (currentRoom.type === 'angel' ? '#252233' : (currentRoom.type === 'shop' ? '#2e2612' : (currentRoom.type === 'planetarium' ? '#09152b' : (floor.wallColor || '#1c1322'))));
   ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
@@ -3969,11 +5069,23 @@ function render() {
         if (val === 1) {
           ctx.fillStyle = '#5a4262';
           ctx.fillRect(tx - 18, ty - 18, 36, 36);
+          ctx.strokeStyle = '#3d2846';
+          ctx.strokeRect(tx - 18, ty - 18, 36, 36);
         } else if (val === 2) {
-          ctx.fillStyle = '#6a5282';
+          ctx.fillStyle = '#2d4a6e';
           ctx.fillRect(tx - 18, ty - 18, 36, 36);
-          ctx.fillStyle = '#ff77d6';
-          ctx.fillRect(tx - 4, ty - 4, 8, 8);
+          ctx.fillStyle = '#00f0ff';
+          ctx.font = 'bold 12px monospace';
+          ctx.textAlign = 'center';
+          ctx.fillText('x', tx, ty + 4);
+        } else if (val === 3) {
+          ctx.font = '16px monospace';
+          ctx.textAlign = 'center';
+          ctx.fillText('📌', tx, ty + 5);
+        } else if (val === 4) {
+          ctx.font = '16px monospace';
+          ctx.textAlign = 'center';
+          ctx.fillText('🍄', tx, ty + 5);
         }
       }
     }
@@ -3991,16 +5103,294 @@ function render() {
   ctx.restore();
 }
 
-// --- GAME FLOW CONTROL ---
+// --- GAME FLOW CONTROL & SAVE SYSTEM ---
+function saveGameState() {
+  if (gameState !== 'PLAYING' || !player) return;
+  try {
+    const saveData = {
+      currentFloorIdx,
+      currentRoomPos,
+      player: {
+        hp: player.hp,
+        maxHp: player.maxHp,
+        soulHp: player.soulHp,
+        coins: player.coins,
+        bombs: player.bombs,
+        keys: player.keys,
+        damage: player.damage,
+        tearRate: player.tearRate,
+        tearSpeed: player.tearSpeed,
+        speed: player.speed,
+        tearScale: player.tearScale,
+        hasMeowmere: player.hasMeowmere,
+        hasKnife: player.hasKnife,
+        hasTechX: player.hasTechX,
+        hasTechnology: player.hasTechnology,
+        hasHorns: player.hasHorns,
+        hasMiniBrimstone: player.hasMiniBrimstone,
+        hasIpecac: player.hasIpecac,
+        hasGodhead: player.hasGodhead,
+        hasCookie: player.hasCookie,
+        hasSoyMilk: player.hasSoyMilk,
+        hasChocMilk: player.hasChocMilk,
+        hasStrawMilk: player.hasStrawMilk,
+        hasTerraBlade: player.hasTerraBlade,
+        hasMoneyPower: player.hasMoneyPower,
+        hasMagnet: player.hasMagnet,
+        hasCandle: player.hasCandle,
+        hasMap: player.hasMap,
+        homingTears: player.homingTears
+      }
+    };
+    localStorage.setItem('isaac_game_save', JSON.stringify(saveData));
+  } catch(e) {}
+}
+
+function loadGameState() {
+  try {
+    const jsonStr = localStorage.getItem('isaac_game_save');
+    if (!jsonStr) return false;
+    const saveData = JSON.parse(jsonStr);
+
+    currentFloorIdx = saveData.currentFloorIdx;
+    generateDungeon();
+
+    player = new Player(CHARACTERS[0]);
+    Object.assign(player, saveData.player);
+
+    currentRoomPos = saveData.currentRoomPos || { x: 2, y: 2 };
+    currentRoom = (dungeonMap[currentRoomPos.y] && dungeonMap[currentRoomPos.y][currentRoomPos.x]) ? dungeonMap[currentRoomPos.y][currentRoomPos.x] : dungeonMap[2][2];
+    enterRoom();
+
+    document.getElementById('menu-screen').style.display = 'none';
+    document.getElementById('gameover-screen').style.display = 'none';
+    document.getElementById('victory-screen').style.display = 'none';
+    document.getElementById('pause-screen').style.display = 'none';
+
+    gameState = 'PLAYING';
+    audio.init();
+    audio.startBGM();
+    return true;
+  } catch(e) {
+    return false;
+  }
+}
+
+function clearGameState() {
+  try {
+    localStorage.removeItem('isaac_game_save');
+  } catch(e) {}
+}
+
+function exportSaveFile() {
+  try {
+    saveGameState();
+    let saveObj = {};
+    try {
+      const saveStr = localStorage.getItem('isaac_game_save');
+      if (saveStr) saveObj = JSON.parse(saveStr);
+    } catch(e) {}
+
+    CHARACTERS.forEach(c => {
+      if (c.unlockKey) {
+        saveObj[c.unlockKey] = isCharUnlocked(c) ? 'true' : 'false';
+      }
+    });
+
+    const blob = new Blob([JSON.stringify(saveObj, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'isaac_full_save.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  } catch(e) {
+    alert('Ошибка скачивания файла сохранения!');
+  }
+}
+
+function importSaveFile(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const content = e.target.result;
+      const parsed = JSON.parse(content);
+      if (parsed) {
+        const unlockKeys = [
+          'unlocked_sosal_devil', 'unlocked_ram_knight', 'unlocked_purple_phantom',
+          'unlocked_green_crown_cat', 'unlocked_cat_warrior', 'unlocked_angel',
+          'unlocked_chara', 'unlocked_jarkhne'
+        ];
+        let unlockedAny = false;
+        unlockKeys.forEach(k => {
+          if (parsed[k] === 'true' || parsed.unlockAll || (parsed.player && parsed.player.unlockAll)) {
+            try { localStorage.setItem(k, 'true'); unlockedAny = true; } catch(err) {}
+          }
+        });
+
+        if (parsed.player && typeof parsed.currentFloorIdx === 'number') {
+          localStorage.setItem('isaac_game_save', JSON.stringify(parsed));
+          checkContinueButton();
+          alert('📤 Сохранение успешно загружено!');
+          if (gameState === 'PLAYING') {
+            loadGameState();
+          }
+        } else if (unlockedAny) {
+          renderCharacterSelectionGrid();
+          alert('🎉 Все персонажи успешно разблокированы!');
+        } else {
+          alert('Файл сохранения прочитан!');
+        }
+      } else {
+        alert('Ошибка: Файл не содержит валидных данных сохранения!');
+      }
+    } catch(err) {
+      alert('Ошибка чтения файла сохранения!');
+    }
+  };
+  reader.readAsText(file);
+}
+
+function checkContinueButton() {
+  const btn = document.getElementById('btn-continue-game');
+  if (!btn) return;
+  try {
+    const hasSave = localStorage.getItem('isaac_game_save') !== null;
+    btn.style.display = hasSave ? 'inline-block' : 'none';
+  } catch(e) {
+    btn.style.display = 'none';
+  }
+}
+
 function returnToMenu() {
   gameState = 'MENU';
+  checkContinueButton();
+  if (typeof renderCharacterSelectionGrid === 'function') {
+    renderCharacterSelectionGrid();
+  }
   document.getElementById('menu-screen').style.display = 'flex';
   document.getElementById('gameover-screen').style.display = 'none';
   document.getElementById('victory-screen').style.display = 'none';
   document.getElementById('pause-screen').style.display = 'none';
 }
 
+function enterItemGallery() {
+  clearGameState();
+  currentFloorIdx = 0;
+  const charData = CHARACTERS[selectedCharIdx] || CHARACTERS[0];
+  player = new Player(charData);
+
+  dungeonMap = Array(5).fill(0).map(() => Array(5).fill(null));
+
+  // Room 1 (Main Weapons Gallery)
+  const room1 = {
+    x: 2, y: 2,
+    type: 'gallery',
+    cleared: true,
+    visited: true,
+    doors: { top: false, bottom: true, left: false, right: true },
+    tiles: Array(ROOM_GRID_H).fill(0).map(() => Array(ROOM_GRID_W).fill(0)),
+    enemiesToSpawn: [], objects: [], pickups: []
+  };
+
+  // Room 2 (Shop & Planetarium Gallery)
+  const room2 = {
+    x: 3, y: 2,
+    type: 'gallery',
+    cleared: true,
+    visited: true,
+    doors: { top: false, bottom: false, left: true, right: false },
+    tiles: Array(ROOM_GRID_H).fill(0).map(() => Array(ROOM_GRID_W).fill(0)),
+    enemiesToSpawn: [], objects: [], pickups: []
+  };
+
+  // Room 3 (Angel/Devil & Training Arena)
+  const room3 = {
+    x: 2, y: 3,
+    type: 'gallery',
+    cleared: true,
+    visited: true,
+    doors: { top: true, bottom: false, left: false, right: false },
+    tiles: Array(ROOM_GRID_H).fill(0).map(() => Array(ROOM_GRID_W).fill(0)),
+    enemiesToSpawn: [], objects: [], pickups: []
+  };
+
+  dungeonMap[2][2] = room1;
+  dungeonMap[2][3] = room2;
+  dungeonMap[3][2] = room3;
+
+  // Populate Room 1: Weapons & Passives
+  const weaponItems = [
+    'chara_knife', 'meowmere', 'terra_blade', 'tech_x', 'technology',
+    'mini_brimstone', 'horns', 'godhead', 'ipecac', 'polyphemus',
+    'playdough_cookie', 'soy_milk', 'chocolate_milk', 'strawberry_milk', 'magic_mushroom'
+  ];
+  weaponItems.forEach((key, idx) => {
+    const r = Math.floor(idx / 5);
+    const c = idx % 5;
+    const px = OFFSET_X + TILE_SIZE * (2.5 + c * 2.2);
+    const py = OFFSET_Y + TILE_SIZE * (2.0 + r * 2.0);
+    const p = new Pickup(px, py, 'pedestal_item');
+    p.itemId = key;
+    room1.pickups.push(p);
+  });
+
+  // Populate Room 2: Shop & Planetarium
+  const shopPlanItems = [
+    'holy_candle', 'treasure_map', 'coin_magnet', 'shop_heart', 'shop_bombs',
+    'shop_keys', 'jupiter', 'the_sun', 'spoon_bender', 'money_power', 'cereal'
+  ];
+  shopPlanItems.forEach((key, idx) => {
+    const r = Math.floor(idx / 5);
+    const c = idx % 5;
+    const px = OFFSET_X + TILE_SIZE * (2.5 + c * 2.2);
+    const py = OFFSET_Y + TILE_SIZE * (2.0 + r * 2.0);
+    const p = new Pickup(px, py, 'pedestal_item');
+    p.itemId = key;
+    room2.pickups.push(p);
+  });
+
+  // Populate Room 3: Angel & Devil Deals + Training Dummy
+  const holyDevilItems = [
+    'sacred_heart', 'relic', 'halo_of_flies', 'guardian_angel', 'stigmata',
+    'purity', 'the_pact', 'abaddon', 'lord_of_the_pit', 'eye_of_belial', 'halo'
+  ];
+  holyDevilItems.forEach((key, idx) => {
+    const r = Math.floor(idx / 5);
+    const c = idx % 5;
+    const px = OFFSET_X + TILE_SIZE * (2.5 + c * 2.2);
+    const py = OFFSET_Y + TILE_SIZE * (1.8 + r * 1.8);
+    const p = new Pickup(px, py, 'pedestal_item');
+    p.itemId = key;
+    room3.pickups.push(p);
+  });
+
+  const dummyEnemy = new Enemy(CANVAS_W / 2, OFFSET_Y + TILE_SIZE * 6.5, 'dummy');
+  room3.enemiesToSpawn = [];
+  room3.objects.push(dummyEnemy);
+
+  currentRoomPos = { x: 2, y: 2 };
+  currentRoom = room1;
+
+  enterRoom();
+
+  document.getElementById('menu-screen').style.display = 'none';
+  document.getElementById('gameover-screen').style.display = 'none';
+  document.getElementById('victory-screen').style.display = 'none';
+  document.getElementById('pause-screen').style.display = 'none';
+
+  gameState = 'PLAYING';
+  audio.init();
+  audio.startBGM();
+
+  showItemBanner('🧪 ИСПЫТАТЕЛЬНЫЙ КОМПЛЕКС (3 КОМНАТЫ)!', 'Проходите через двери галереи и тестируйте синергии на манекене!', RAW_ASSETS['meowmere_64.png']);
+}
+
 function startGame() {
+  clearGameState();
   currentFloorIdx = 0;
   const charData = CHARACTERS[selectedCharIdx];
   player = new Player(charData);
@@ -4031,6 +5421,7 @@ function startGame() {
 
 function triggerGameOver(reason) {
   gameState = 'GAMEOVER';
+  clearGameState();
   document.getElementById('death-reason').innerText = reason;
   document.getElementById('game-stats-summary').innerText = 'Пройдено этажей: ' + (currentFloorIdx + 1) + '/9 | Монет: ' + player.coins;
   document.getElementById('gameover-screen').style.display = 'flex';
@@ -4038,8 +5429,72 @@ function triggerGameOver(reason) {
 
 function triggerVictory() {
   gameState = 'VICTORY';
+  clearGameState();
+  unlockCharacter('unlocked_green_crown_cat');
   document.getElementById('victory-stats-summary').innerText = 'ВСЕ 9 ЭТАЖЕЙ ПРОЙДЕНЫ! МЕГА САТАНА ПОВЕРЖЕН! Собрано монет: ' + player.coins;
   document.getElementById('victory-screen').style.display = 'flex';
+}
+
+// --- CHARACTER UNLOCK SYSTEM ---
+function isCharUnlocked(char) {
+  if (!char.unlockKey) return true;
+  try {
+    return localStorage.getItem(char.unlockKey) === 'true';
+  } catch(e) {
+    return true;
+  }
+}
+
+function unlockCharacter(key) {
+  try {
+    localStorage.setItem(key, 'true');
+    renderCharacterSelectionGrid();
+  } catch(e) {}
+}
+
+function renderCharacterSelectionGrid() {
+  const charGrid = document.getElementById('char-select-grid');
+  if (!charGrid) return;
+  charGrid.innerHTML = '';
+  CHARACTERS.forEach((char, idx) => {
+    const unlocked = isCharUnlocked(char);
+    const card = document.createElement('div');
+    card.className = 'char-card' + (idx === selectedCharIdx ? ' selected' : '') + (unlocked ? '' : ' locked');
+    
+    card.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (!isCharUnlocked(char)) {
+        alert('🔒 Персонаж заблокирован!\nУсловие разблокировки:\n' + char.reqText);
+        return;
+      }
+      document.querySelectorAll('.char-card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      selectedCharIdx = idx;
+    });
+
+    const portraitDiv = document.createElement('div');
+    portraitDiv.className = 'char-portrait';
+
+    const portraitImg = document.createElement('img');
+    portraitImg.src = RAW_ASSETS[char.sheet];
+    portraitImg.className = char.isSinImg ? 'sin-portrait' : 'sheet-portrait';
+
+    portraitDiv.appendChild(portraitImg);
+
+    const nameDiv = document.createElement('div');
+    nameDiv.className = 'char-name';
+    nameDiv.innerText = unlocked ? char.name : '🔒 ' + char.name;
+
+    const descDiv = document.createElement('div');
+    descDiv.className = 'char-desc';
+    descDiv.innerText = unlocked ? char.desc : '🔒 ' + char.reqText;
+
+    card.appendChild(portraitDiv);
+    card.appendChild(nameDiv);
+    card.appendChild(descDiv);
+
+    charGrid.appendChild(card);
+  });
 }
 
 // --- EVENT LISTENERS & SETUP FOR MOBILE & DESKTOP ---
@@ -4064,42 +5519,30 @@ window.onload = () => {
     if (tc) tc.style.display = 'flex';
   }
 
-  // CLEAN DOM CHARACTER SELECTION MENU WITH NO INNERHTML DESTRUCTION!
-  const charGrid = document.getElementById('char-select-grid');
-  charGrid.innerHTML = '';
-  CHARACTERS.forEach((char, idx) => {
-    const card = document.createElement('div');
-    card.className = 'char-card' + (idx === selectedCharIdx ? ' selected' : '');
-    card.addEventListener('click', (e) => {
-      e.stopPropagation();
-      document.querySelectorAll('.char-card').forEach(c => c.classList.remove('selected'));
-      card.classList.add('selected');
-      selectedCharIdx = idx;
-    });
+  // Render Character Selection Cards Grid
+  renderCharacterSelectionGrid();
+  checkContinueButton();
 
-    const portraitDiv = document.createElement('div');
-    portraitDiv.className = 'char-portrait';
+  const btnCont = document.getElementById('btn-continue-game');
+  if (btnCont) {
+    btnCont.onclick = (e) => {
+      e.preventDefault();
+      loadGameState();
+    };
+  }
 
-    const portraitImg = document.createElement('img');
-    portraitImg.src = RAW_ASSETS[char.sheet];
-    portraitImg.className = char.isSinImg ? 'sin-portrait' : 'sheet-portrait';
+  const btnGal = document.getElementById('btn-item-gallery');
+  if (btnGal) btnGal.onclick = (e) => { e.preventDefault(); enterItemGallery(); };
 
-    portraitDiv.appendChild(portraitImg);
+  const btnExp = document.getElementById('btn-export-save');
+  if (btnExp) btnExp.onclick = (e) => { e.preventDefault(); exportSaveFile(); };
 
-    const nameDiv = document.createElement('div');
-    nameDiv.className = 'char-name';
-    nameDiv.innerText = char.name;
-
-    const descDiv = document.createElement('div');
-    descDiv.className = 'char-desc';
-    descDiv.innerText = char.desc;
-
-    card.appendChild(portraitDiv);
-    card.appendChild(nameDiv);
-    card.appendChild(descDiv);
-
-    charGrid.appendChild(card);
-  });
+  const btnImp = document.getElementById('btn-import-save');
+  const fileImp = document.getElementById('file-import-save');
+  if (btnImp && fileImp) {
+    btnImp.onclick = (e) => { e.preventDefault(); fileImp.click(); };
+    fileImp.onchange = (e) => { importSaveFile(e.target.files[0]); };
+  }
 
   document.getElementById('btn-start-game').onclick = (e) => {
     e.preventDefault();
@@ -4155,19 +5598,99 @@ window.onload = () => {
     });
   }
 
-  // Cardinal Movement
-  bindTouch('tb-w', () => keysHeld['KeyW'] = true, () => keysHeld['KeyW'] = false);
-  bindTouch('tb-a', () => keysHeld['KeyA'] = true, () => keysHeld['KeyA'] = false);
-  bindTouch('tb-s', () => keysHeld['KeyS'] = true, () => keysHeld['KeyS'] = false);
-  bindTouch('tb-d', () => keysHeld['KeyD'] = true, () => keysHeld['KeyD'] = false);
+  // VIRTUAL ANALOG JOYSTICK SETUP FOR SMOOTH MOBILE MOVEMENT
+  const jBase = document.getElementById('joystick-base');
+  const jStick = document.getElementById('joystick-stick');
+  let jTouchId = null;
+
+  if (jBase && jStick) {
+    const updateJStick = (touch) => {
+      const rect = jBase.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      let dx = touch.clientX - centerX;
+      let dy = touch.clientY - centerY;
+      const maxDist = rect.width / 2;
+      const dist = Math.hypot(dx, dy);
+
+      if (dist > maxDist) {
+        dx = (dx / dist) * maxDist;
+        dy = (dy / dist) * maxDist;
+      }
+
+      jStick.style.transform = `translate(${dx}px, ${dy}px)`;
+
+      jVector.x = dx / maxDist;
+      jVector.y = dy / maxDist;
+
+      keysHeld['KeyA'] = jVector.x < -0.25;
+      keysHeld['KeyD'] = jVector.x > 0.25;
+      keysHeld['KeyW'] = jVector.y < -0.25;
+      keysHeld['KeyS'] = jVector.y > 0.25;
+    };
+
+    const resetJStick = () => {
+      jStick.style.transform = 'translate(0px, 0px)';
+      jVector = { x: 0, y: 0 };
+      keysHeld['KeyA'] = false;
+      keysHeld['KeyD'] = false;
+      keysHeld['KeyW'] = false;
+      keysHeld['KeyS'] = false;
+    };
+
+    const handleJStart = (e) => {
+      e.preventDefault();
+      const touch = e.changedTouches ? e.changedTouches[0] : e;
+      jTouchId = touch.identifier !== undefined ? touch.identifier : 'mouse';
+      updateJStick(touch);
+    };
+
+    const handleJMove = (e) => {
+      if (jTouchId === null) return;
+      e.preventDefault();
+      let touch = null;
+      if (e.changedTouches) {
+        for (let i = 0; i < e.changedTouches.length; i++) {
+          if (e.changedTouches[i].identifier === jTouchId) {
+            touch = e.changedTouches[i];
+            break;
+          }
+        }
+      } else {
+        touch = e;
+      }
+      if (touch) updateJStick(touch);
+    };
+
+    const handleJEnd = (e) => {
+      if (jTouchId === null) return;
+      if (e.changedTouches) {
+        for (let i = 0; i < e.changedTouches.length; i++) {
+          if (e.changedTouches[i].identifier === jTouchId) {
+            jTouchId = null;
+            resetJStick();
+            break;
+          }
+        }
+      } else {
+        jTouchId = null;
+        resetJStick();
+      }
+    };
+
+    jBase.addEventListener('touchstart', handleJStart, { passive: false });
+    window.addEventListener('touchmove', handleJMove, { passive: false });
+    window.addEventListener('touchend', handleJEnd, { passive: false });
+    window.addEventListener('touchcancel', handleJEnd, { passive: false });
+
+    jBase.addEventListener('mousedown', handleJStart);
+    window.addEventListener('mousemove', handleJMove);
+    window.addEventListener('mouseup', handleJEnd);
+  }
+
+  // Action Buttons
   bindTouch('tb-e', () => keysHeld['KeyE'] = true, () => keysHeld['KeyE'] = false);
   bindTouch('tb-bomb', () => keysHeld['ShiftLeft'] = true, () => keysHeld['ShiftLeft'] = false);
-
-  // Diagonal Movement Buttons! (↖ ↗ ↙ ↘)
-  bindTouch('tb-mov-ul', () => { keysHeld['KeyW'] = true; keysHeld['KeyA'] = true; }, () => { keysHeld['KeyW'] = false; keysHeld['KeyA'] = false; });
-  bindTouch('tb-mov-ur', () => { keysHeld['KeyW'] = true; keysHeld['KeyD'] = true; }, () => { keysHeld['KeyW'] = false; keysHeld['KeyD'] = false; });
-  bindTouch('tb-mov-dl', () => { keysHeld['KeyS'] = true; keysHeld['KeyA'] = true; }, () => { keysHeld['KeyS'] = false; keysHeld['KeyA'] = false; });
-  bindTouch('tb-mov-dr', () => { keysHeld['KeyS'] = true; keysHeld['KeyD'] = true; }, () => { keysHeld['KeyS'] = false; keysHeld['KeyD'] = false; });
 
   // Cardinal Shooting
   bindTouch('tb-up', () => keysHeld['ArrowUp'] = true, () => keysHeld['ArrowUp'] = false);
