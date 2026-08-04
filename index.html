@@ -177,57 +177,120 @@
       color: #b0a0e0;
     }
 
-    /* Mobile Touch Controls Overlay */
-    .touch-controls {
-      position: absolute;
-      bottom: 8px;
-      left: 0;
-      width: 100%;
-      display: none;
-      justify-content: space-between;
-      padding: 0 10px;
-      pointer-events: auto;
-      z-index: 40;
-    }
-
-    @media (hover: none) and (pointer: coarse), (max-width: 768px) {
+    /* Mobile Responsive Container & Touch Controls */
+    @media (max-width: 900px), (hover: none) and (pointer: coarse) {
+      body {
+        width: 100vw;
+        height: 100vh;
+        overflow: hidden;
+      }
+      #game-container {
+        width: 100vw !important;
+        height: 100vh !important;
+        max-width: 100vw !important;
+        max-height: 100vh !important;
+        border-radius: 0 !important;
+        border: none !important;
+      }
+      canvas#gameCanvas {
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: contain !important;
+      }
       .touch-controls {
-        display: flex !important;
+        display: block !important;
       }
       #controls-hint {
         display: none !important;
       }
     }
 
+    .touch-controls {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: none;
+      pointer-events: none;
+      z-index: 40;
+    }
+
+    /* Left-Side Virtual Analog Joystick */
+    .joystick-base {
+      position: absolute;
+      bottom: 25px;
+      left: 25px;
+      width: 105px;
+      height: 105px;
+      background: rgba(255, 255, 255, 0.15);
+      border: 2px solid rgba(255, 255, 255, 0.45);
+      border-radius: 50%;
+      touch-action: none;
+      pointer-events: auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.6);
+    }
+    .joystick-stick {
+      width: 42px;
+      height: 42px;
+      background: linear-gradient(180deg, #ff44aa 0%, #aa1166 100%);
+      border: 2px solid #ff77cc;
+      border-radius: 50%;
+      position: absolute;
+      pointer-events: none;
+      box-shadow: 0 0 10px rgba(255, 68, 170, 0.8);
+      transition: transform 0.05s ease-out;
+    }
+
+    /* Right-Side Compact Shooting Pad & Action Buttons */
+    .touch-right-panel {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 10px;
+      pointer-events: auto;
+    }
+
+    .touch-action-row {
+      display: flex;
+      gap: 10px;
+    }
+
     .touch-pad {
       display: grid;
-      grid-template-columns: repeat(3, 38px);
-      grid-template-rows: repeat(3, 38px);
-      gap: 3px;
+      grid-template-columns: repeat(3, 32px);
+      grid-template-rows: repeat(3, 32px);
+      gap: 2px;
     }
     .tbtn {
       background: rgba(255, 255, 255, 0.22);
       border: 1.5px solid rgba(255, 255, 255, 0.45);
-      border-radius: 8px;
+      border-radius: 6px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 15px;
+      font-size: 12px;
       color: white;
       user-select: none;
       font-weight: bold;
       box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+      touch-action: manipulation;
     }
     .tbtn:active {
       background: rgba(255, 68, 170, 0.7);
       transform: scale(0.92);
     }
-
-    .touch-bomb-box {
-      position: absolute;
-      bottom: 135px;
-      left: 10px;
-      pointer-events: auto;
+    .tbtn-action {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      font-size: 14px;
     }
 
     /* Controls Bar Footer */
@@ -409,34 +472,30 @@
 
       <!-- Mobile Touch Controls Overlay -->
       <div class="touch-controls">
-        <div class="touch-bomb-box">
-          <div class="tbtn" id="tb-bomb" style="width: 44px; height: 44px; background: rgba(255, 80, 0, 0.5);">💣</div>
+        <!-- Left Side: Smooth Virtual Touch Analog Joystick -->
+        <div id="joystick-base" class="joystick-base">
+          <div id="joystick-stick" class="joystick-stick"></div>
         </div>
 
-        <!-- 8-Direction Movement D-Pad -->
-        <div class="touch-pad">
-          <div class="tbtn" id="tb-mov-ul">↖</div>
-          <div class="tbtn" id="tb-w">▲</div>
-          <div class="tbtn" id="tb-mov-ur">↗</div>
-          <div class="tbtn" id="tb-a">◀</div>
-          <div class="tbtn" id="tb-e" style="background: rgba(0,200,255,0.4);">E</div>
-          <div class="tbtn" id="tb-d">▶</div>
-          <div class="tbtn" id="tb-mov-dl">↙</div>
-          <div class="tbtn" id="tb-s">▼</div>
-          <div class="tbtn" id="tb-mov-dr">↘</div>
-        </div>
+        <!-- Right Side: Compact Shooting Pad & Action Buttons -->
+        <div class="touch-right-panel">
+          <div class="touch-action-row">
+            <div class="tbtn tbtn-action" id="tb-bomb" style="background: rgba(255, 80, 0, 0.6);">💣</div>
+            <div class="tbtn tbtn-action" id="tb-e" style="background: rgba(0, 200, 255, 0.6);">E</div>
+          </div>
 
-        <!-- 8-Direction Shooting D-Pad -->
-        <div class="touch-pad">
-          <div class="tbtn" id="tb-shoot-ul">↖</div>
-          <div class="tbtn" id="tb-up">▲</div>
-          <div class="tbtn" id="tb-shoot-ur">↗</div>
-          <div class="tbtn" id="tb-left">◀</div>
-          <div class="tbtn" style="opacity: 0.3;">🎯</div>
-          <div class="tbtn" id="tb-right">▶</div>
-          <div class="tbtn" id="tb-shoot-dl">↙</div>
-          <div class="tbtn" id="tb-down">▼</div>
-          <div class="tbtn" id="tb-shoot-dr">↘</div>
+          <!-- 8-Direction Shooting Pad -->
+          <div class="touch-pad">
+            <div class="tbtn" id="tb-shoot-ul">↖</div>
+            <div class="tbtn" id="tb-up">▲</div>
+            <div class="tbtn" id="tb-shoot-ur">↗</div>
+            <div class="tbtn" id="tb-left">◀</div>
+            <div class="tbtn" style="opacity: 0.3;">🎯</div>
+            <div class="tbtn" id="tb-right">▶</div>
+            <div class="tbtn" id="tb-shoot-dl">↙</div>
+            <div class="tbtn" id="tb-down">▼</div>
+            <div class="tbtn" id="tb-shoot-dr">↘</div>
+          </div>
         </div>
       </div>
 
@@ -524,6 +583,7 @@ let particles = [];
 let floatingTexts = [];
 let keysHeld = {};
 let mousePos = { x: 0, y: 0, down: false };
+let jVector = { x: 0, y: 0 };
 let currentRoom = null;
 let currentRoomPos = { x: 2, y: 2 };
 let dungeonMap = [];
@@ -1451,14 +1511,24 @@ class Player {
     if (this.swingTimer > 0) this.swingTimer--;
 
     let dx = 0, dy = 0;
-    if (keysHeld['KeyA']) dx -= 1;
-    if (keysHeld['KeyD']) dx += 1;
-    if (keysHeld['KeyW']) dy -= 1;
-    if (keysHeld['KeyS']) dy += 1;
+    if (jVector && (jVector.x !== 0 || jVector.y !== 0)) {
+      dx = jVector.x;
+      dy = jVector.y;
+      const len = Math.hypot(dx, dy);
+      if (len > 1) {
+        dx /= len;
+        dy /= len;
+      }
+    } else {
+      if (keysHeld['KeyA']) dx -= 1;
+      if (keysHeld['KeyD']) dx += 1;
+      if (keysHeld['KeyW']) dy -= 1;
+      if (keysHeld['KeyS']) dy += 1;
 
-    if (dx !== 0 && dy !== 0) {
-      dx *= 0.7071;
-      dy *= 0.7071;
+      if (dx !== 0 && dy !== 0) {
+        dx *= 0.7071;
+        dy *= 0.7071;
+      }
     }
 
     if (dy > 0) this.dir = 0;
@@ -4155,19 +4225,99 @@ window.onload = () => {
     });
   }
 
-  // Cardinal Movement
-  bindTouch('tb-w', () => keysHeld['KeyW'] = true, () => keysHeld['KeyW'] = false);
-  bindTouch('tb-a', () => keysHeld['KeyA'] = true, () => keysHeld['KeyA'] = false);
-  bindTouch('tb-s', () => keysHeld['KeyS'] = true, () => keysHeld['KeyS'] = false);
-  bindTouch('tb-d', () => keysHeld['KeyD'] = true, () => keysHeld['KeyD'] = false);
+  // VIRTUAL ANALOG JOYSTICK SETUP FOR SMOOTH MOBILE MOVEMENT
+  const jBase = document.getElementById('joystick-base');
+  const jStick = document.getElementById('joystick-stick');
+  let jTouchId = null;
+
+  if (jBase && jStick) {
+    const updateJStick = (touch) => {
+      const rect = jBase.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      let dx = touch.clientX - centerX;
+      let dy = touch.clientY - centerY;
+      const maxDist = rect.width / 2;
+      const dist = Math.hypot(dx, dy);
+
+      if (dist > maxDist) {
+        dx = (dx / dist) * maxDist;
+        dy = (dy / dist) * maxDist;
+      }
+
+      jStick.style.transform = `translate(${dx}px, ${dy}px)`;
+
+      jVector.x = dx / maxDist;
+      jVector.y = dy / maxDist;
+
+      keysHeld['KeyA'] = jVector.x < -0.25;
+      keysHeld['KeyD'] = jVector.x > 0.25;
+      keysHeld['KeyW'] = jVector.y < -0.25;
+      keysHeld['KeyS'] = jVector.y > 0.25;
+    };
+
+    const resetJStick = () => {
+      jStick.style.transform = 'translate(0px, 0px)';
+      jVector = { x: 0, y: 0 };
+      keysHeld['KeyA'] = false;
+      keysHeld['KeyD'] = false;
+      keysHeld['KeyW'] = false;
+      keysHeld['KeyS'] = false;
+    };
+
+    const handleJStart = (e) => {
+      e.preventDefault();
+      const touch = e.changedTouches ? e.changedTouches[0] : e;
+      jTouchId = touch.identifier !== undefined ? touch.identifier : 'mouse';
+      updateJStick(touch);
+    };
+
+    const handleJMove = (e) => {
+      if (jTouchId === null) return;
+      e.preventDefault();
+      let touch = null;
+      if (e.changedTouches) {
+        for (let i = 0; i < e.changedTouches.length; i++) {
+          if (e.changedTouches[i].identifier === jTouchId) {
+            touch = e.changedTouches[i];
+            break;
+          }
+        }
+      } else {
+        touch = e;
+      }
+      if (touch) updateJStick(touch);
+    };
+
+    const handleJEnd = (e) => {
+      if (jTouchId === null) return;
+      if (e.changedTouches) {
+        for (let i = 0; i < e.changedTouches.length; i++) {
+          if (e.changedTouches[i].identifier === jTouchId) {
+            jTouchId = null;
+            resetJStick();
+            break;
+          }
+        }
+      } else {
+        jTouchId = null;
+        resetJStick();
+      }
+    };
+
+    jBase.addEventListener('touchstart', handleJStart, { passive: false });
+    window.addEventListener('touchmove', handleJMove, { passive: false });
+    window.addEventListener('touchend', handleJEnd, { passive: false });
+    window.addEventListener('touchcancel', handleJEnd, { passive: false });
+
+    jBase.addEventListener('mousedown', handleJStart);
+    window.addEventListener('mousemove', handleJMove);
+    window.addEventListener('mouseup', handleJEnd);
+  }
+
+  // Action Buttons
   bindTouch('tb-e', () => keysHeld['KeyE'] = true, () => keysHeld['KeyE'] = false);
   bindTouch('tb-bomb', () => keysHeld['ShiftLeft'] = true, () => keysHeld['ShiftLeft'] = false);
-
-  // Diagonal Movement Buttons! (↖ ↗ ↙ ↘)
-  bindTouch('tb-mov-ul', () => { keysHeld['KeyW'] = true; keysHeld['KeyA'] = true; }, () => { keysHeld['KeyW'] = false; keysHeld['KeyA'] = false; });
-  bindTouch('tb-mov-ur', () => { keysHeld['KeyW'] = true; keysHeld['KeyD'] = true; }, () => { keysHeld['KeyW'] = false; keysHeld['KeyD'] = false; });
-  bindTouch('tb-mov-dl', () => { keysHeld['KeyS'] = true; keysHeld['KeyA'] = true; }, () => { keysHeld['KeyS'] = false; keysHeld['KeyA'] = false; });
-  bindTouch('tb-mov-dr', () => { keysHeld['KeyS'] = true; keysHeld['KeyD'] = true; }, () => { keysHeld['KeyS'] = false; keysHeld['KeyD'] = false; });
 
   // Cardinal Shooting
   bindTouch('tb-up', () => keysHeld['ArrowUp'] = true, () => keysHeld['ArrowUp'] = false);
@@ -4212,5 +4362,5 @@ window.onload = () => {
   });
 };
 </script>
-</body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a25cfcc1ceab780b',t:'MTc4NTg0MDQ4MQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
