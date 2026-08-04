@@ -861,33 +861,34 @@ class AudioEngine {
           lv = player.charaLV || 1;
         }
 
-        // TENSION NOISE GETS PROGRESSIVELY LOUDER PAST LV 7!
+        // LOW-FREQUENCY WIND BASS RUMBLE PAST LV 7!
         if (lv >= 7) {
           const tension = Math.min(1.0, (lv - 6) / 13);
-          const noiseGain = 0.04 + tension * 0.24;
-          const noiseFreq = 50.0 * Math.max(0.3, 1.0 - tension * 0.4);
+          const noiseGain = 0.05 + tension * 0.28;
+          const windFreq = 28.0 + (1.0 - tension) * 12.0;
 
-          const tOsc1 = this.ctx.createOscillator();
-          const tOsc2 = this.ctx.createOscillator();
-          const tGain = this.ctx.createGain();
+          const wOsc1 = this.ctx.createOscillator();
+          const wOsc2 = this.ctx.createOscillator();
+          const wGain = this.ctx.createGain();
 
-          tOsc1.type = 'sawtooth';
-          tOsc2.type = 'square';
+          wOsc1.type = 'sine';
+          wOsc2.type = 'triangle';
 
-          tOsc1.frequency.setValueAtTime(noiseFreq, now);
-          tOsc2.frequency.setValueAtTime(noiseFreq * 1.414, now);
+          wOsc1.frequency.setValueAtTime(windFreq, now);
+          wOsc2.frequency.setValueAtTime(windFreq * 1.5, now);
 
-          tGain.gain.setValueAtTime(noiseGain, now);
-          tGain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+          wGain.gain.setValueAtTime(0.01, now);
+          wGain.gain.linearRampToValueAtTime(noiseGain, now + 0.2);
+          wGain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
 
-          tOsc1.connect(tGain);
-          tOsc2.connect(tGain);
-          tGain.connect(this.ctx.destination);
+          wOsc1.connect(wGain);
+          wOsc2.connect(wGain);
+          wGain.connect(this.ctx.destination);
 
-          tOsc1.start(now);
-          tOsc2.start(now);
-          tOsc1.stop(now + 0.4);
-          tOsc2.stop(now + 0.4);
+          wOsc1.start(now);
+          wOsc2.start(now);
+          wOsc1.stop(now + 0.5);
+          wOsc2.stop(now + 0.5);
         }
         
         if (this.currentTrackType === 'boss_battle') {
@@ -1971,22 +1972,23 @@ class Player {
   }
 
   addCharaExp(amount) {
-    if (this.charData.id !== 'chara') return;
+    if (this.charData.id !== 'chara' || (this.charaLV || 1) >= 20) return;
     this.charaExp = (this.charaExp || 0) + amount;
     this.charaLV = this.charaLV || 1;
     this.charaNextExp = this.charaNextExp || 30;
 
     if (this.charaExp >= this.charaNextExp) {
       this.charaExp -= this.charaNextExp;
-      this.charaLV++;
-      this.charaNextExp = Math.floor(this.charaNextExp * 1.4 + 20);
-      this.damage += 1.2;
+      this.charaLV = Math.min(20, this.charaLV + 1);
+      this.charaNextExp = Math.floor(this.charaNextExp * 1.35 + 25);
+      this.damage += 1.5;
       this.speed = Math.min(6.5, this.speed + 0.1);
       audio.playExplosion();
+      const lvlTag = (this.charaLV >= 20) ? '👑 LV 20 MAX! РЕШИМОСТЬ 100%!' : ('💥 LV UP! РЕШИМОСТЬ LV ' + this.charaLV + '!');
       if (typeof floatingTexts !== 'undefined') {
-        floatingTexts.push(new FloatingText(this.x, this.y - 32, "💥 LV UP! РЕШИМОСТЬ LV " + this.charaLV + "!", "#ff0033"));
+        floatingTexts.push(new FloatingText(this.x, this.y - 32, lvlTag, '#ff0033'));
       }
-      for (let i = 0; i < 12; i++) {
+      for (let i = 0; i < 15; i++) {
         particles.push(new Particle(this.x, this.y, '#ff0033', 5, 1.4));
       }
     }
@@ -4927,6 +4929,8 @@ class Enemy {
           showItemBanner('ВЕЛИКИЙ ЯРХНЕ ПОВЕРЖЕН!', 'Разблокирован ВЕЛИКИЙ ЯРХНЕ + Открыт Портал Делириума!', RAW_ASSETS['Jarkhne.png'] || RAW_ASSETS['meowmere_64.png']);
           const portalObj = new DeliriumPortal(CANVAS_W / 2, OFFSET_Y + 10);
           currentRoom.objects.push(portalObj);
+        } else if (this.type === 'boss_mega_satan' || currentFloorIdx >= FLOORS.length - 1) {
+          triggerVictory();
         } else if (currentFloorIdx < FLOORS.length - 1) {
           const trapdoorObj = new Trapdoor(CANVAS_W / 2, CANVAS_H / 2);
           currentRoom.objects.push(trapdoorObj);
@@ -6266,7 +6270,9 @@ function update() {
     e.update();
     if (e.hp <= 0) {
       if (player && player.charData && player.charData.id === 'chara' && typeof player.addCharaExp === 'function') {
-        player.addCharaExp(e.isBoss ? 60 : 15);
+        const floorLvl = (typeof currentFloorIdx !== 'undefined' ? currentFloorIdx : 0) + 1;
+        const expGained = e.isBoss ? (50 + floorLvl * 25) : (10 + floorLvl * 6);
+        player.addCharaExp(expGained);
       }
       enemies.splice(i, 1);
     }
@@ -6862,6 +6868,10 @@ function triggerCharaJumpscare() {
 }
 
 function triggerVictory() {
+  if (player && player.charData && player.charData.id === 'chara') {
+    triggerCharaJumpscare();
+    return;
+  }
   gameState = 'VICTORY';
   clearGameState();
   unlockCharacter('unlocked_green_crown_cat');
